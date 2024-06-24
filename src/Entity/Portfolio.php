@@ -35,6 +35,9 @@ class Portfolio
     #[ORM\OneToMany(targetEntity: TransactionBatch::class, mappedBy: 'portfolio')]
     private Collection $TransactionBatches;
 
+    #[ORM\Column]
+    private bool $isDefault = false;
+
     public function __construct()
     {
         $this->TransactionBatches = new ArrayCollection();
@@ -119,6 +122,18 @@ class Portfolio
                 $transactionBatch->setPortfolio(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isDefault(): ?bool
+    {
+        return $this->isDefault;
+    }
+
+    public function setDefault(bool $isDefault): static
+    {
+        $this->isDefault = $isDefault;
 
         return $this;
     }
