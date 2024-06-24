@@ -14,22 +14,31 @@ class Transaction
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 15)]
-    private ?string $buySymbol = null;
+    #[ORM\ManyToOne(inversedBy: 'transactions')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?TransactionBatch $transactionBatch = null;
 
-    #[ORM\Column(length: 15)]
-    private ?string $sellSymbol = null;
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Exchange $Exchange = null;
+    
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Currency $boughtCurrency = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Currency $soldCurrency = null;
+    
+    #[ORM\ManyToOne]
+    private ?Currency $feeCurrency = null;
 
     #[ORM\Column]
     private ?float $buyValue = null;
 
     #[ORM\Column]
     private ?float $sellValue = null;
-
-    #[ORM\Column(length: 15)]
-    private ?string $feeCurrency = null;
-    
-    
+   
     #[ORM\Column]
     private ?float $fee = null;
  
@@ -42,35 +51,67 @@ class Transaction
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $date = null;
 
-    #[ORM\ManyToOne(inversedBy: 'transactions')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?TransactionBatch $transactionBatch = null;
-
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getBuySymbol(): ?string
+    public function getTransactionBatch(): ?TransactionBatch
     {
-        return $this->buySymbol;
+        return $this->transactionBatch;
     }
 
-    public function setBuySymbol(string $buySymbol): static
+    public function setTransactionBatch(?TransactionBatch $transactionBatch): static
     {
-        $this->buySymbol = $buySymbol;
+        $this->transactionBatch = $transactionBatch;
 
         return $this;
     }
 
-    public function getSellSymbol(): ?string
+    public function getExchange(): ?Exchange
     {
-        return $this->sellSymbol;
+        return $this->Exchange;
     }
 
-    public function setSellSymbol(string $sellSymbol): static
+    public function setExchange(?Exchange $Exchange): static
     {
-        $this->sellSymbol = $sellSymbol;
+        $this->Exchange = $Exchange;
+
+        return $this;
+    }
+
+    public function getBoughtCurrency(): ?Currency
+    {
+        return $this->boughtCurrency;
+    }
+
+    public function setBoughtCurrency(?Currency $boughtCurrency): static
+    {
+        $this->boughtCurrency = $boughtCurrency;
+
+        return $this;
+    }
+
+    public function getSoldCurrency(): ?Currency
+    {
+        return $this->soldCurrency;
+    }
+
+    public function setSoldCurrency(?Currency $soldCurrency): static
+    {
+        $this->soldCurrency = $soldCurrency;
+
+        return $this;
+    }
+
+    public function getFeeCurrency(): ?Currency
+    {
+        return $this->feeCurrency;
+    }
+
+    public function setFeeCurrency(?Currency $feeCurrency): static
+    {
+        $this->feeCurrency = $feeCurrency;
 
         return $this;
     }
@@ -111,18 +152,6 @@ class Transaction
         return $this;
     }
 
-    public function getFeeCurrency(): ?string
-    {
-        return $this->feeCurrency;
-    }
-
-    public function setFeeCurrency(string $feeCurrency): static
-    {
-        $this->feeCurrency = $feeCurrency;
-
-        return $this;
-    }
-
     public function getMarketPrice(): ?float
     {
         return $this->marketPrice;
@@ -155,18 +184,6 @@ class Transaction
     public function setDate(\DateTimeInterface $date): static
     {
         $this->date = $date;
-
-        return $this;
-    }
-
-    public function getTransactionBatch(): ?TransactionBatch
-    {
-        return $this->transactionBatch;
-    }
-
-    public function setTransactionBatch(?TransactionBatch $transactionBatch): static
-    {
-        $this->transactionBatch = $transactionBatch;
 
         return $this;
     }
