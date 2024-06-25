@@ -14,43 +14,51 @@ class DailyExchangeRate
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 15)]
-    private ?string $BaseCurrency = null;
-
-    #[ORM\Column(length: 15)]
-    private ?string $ExchangedCurrency = null;
+    
 
     #[ORM\Column]
     private ?float $ExchangeRate = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Currency $baseCurrency = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Currency $exchangedCurrency = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $Date = null;
+
+    #[ORM\ManyToOne(inversedBy: 'ExchengedCurrencies')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?FiatCurrencyPair $pairGlobalData = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
-
-    public function getBaseCurrency(): ?string
+    
+    public function getBaseCurrency(): ?Currency
     {
-        return $this->BaseCurrency;
+        return $this->baseCurrency;
     }
 
-    public function setBaseCurrency(string $BaseCurrency): static
+    public function setBaseCurrency(?Currency $baseCurrency): static
     {
-        $this->BaseCurrency = $BaseCurrency;
+        $this->baseCurrency = $baseCurrency;
 
         return $this;
     }
 
-    public function getExchangedCurrency(): ?string
+    public function getExchangedCurrency(): ?Currency
     {
-        return $this->ExchangedCurrency;
+        return $this->exchangedCurrency;
     }
 
-    public function setExchangedCurrency(string $ExchangedCurrency): static
+    public function setExchangedCurrency(?Currency $exchangedCurrency): static
     {
-        $this->ExchangedCurrency = $ExchangedCurrency;
+        $this->exchangedCurrency = $exchangedCurrency;
 
         return $this;
     }
@@ -75,6 +83,18 @@ class DailyExchangeRate
     public function setDate(\DateTimeInterface $Date): static
     {
         $this->Date = $Date;
+
+        return $this;
+    }
+
+    public function getPairGlobalData(): ?FiatCurrencyPair
+    {
+        return $this->pairGlobalData;
+    }
+
+    public function setPairGlobalData(?FiatCurrencyPair $pairGlobalData): static
+    {
+        $this->pairGlobalData = $pairGlobalData;
 
         return $this;
     }
