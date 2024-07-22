@@ -23,8 +23,8 @@ class Currency
     #[ORM\Column(length: 127, nullable: true)]
     private ?string $nativeBlockchain = null;
 
-    #[ORM\Column(length: 127, nullable: true)]
-    private ?string $network = null;
+    #[ORM\Column(type: Types::ARRAY)]
+    private array $availableNetworks = [];
 
     #[ORM\Column(nullable: true)]
     private ?float $allTimeHigh = null;
@@ -46,6 +46,11 @@ class Currency
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $lastPriceUpdate = null;
+
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\Column(nullable: true)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?self $pricesCurrency = null;
 
     public function getId(): ?int
     {
@@ -87,15 +92,16 @@ class Currency
 
         return $this;
     }
-
-    public function getNetwork(): ?string
+    
+    public function getAvailableNetworks(): array
     {
-        return $this->network;
+        return $this->availableNetworks;
     }
 
-    public function setNetwork(?string $network): static
+    public function setAvailableNetworks(?array $availableNetworks): static
     {
-        $this->network = $network;
+
+        $this->availableNetworks = $availableNetworks ?? [];
 
         return $this;
     }
@@ -179,7 +185,19 @@ class Currency
 
     public function setNiches(?array $niches): static
     {
-        $this->niches = $niches;
+        $this->niches = $niches ?? [];
+
+        return $this;
+    }
+
+    public function getPricesCurrency(): ?self
+    {
+        return $this->pricesCurrency;
+    }
+
+    public function setPricesCurrency(?self $pricesCurrency): static
+    {
+        $this->pricesCurrency = $pricesCurrency;
 
         return $this;
     }
