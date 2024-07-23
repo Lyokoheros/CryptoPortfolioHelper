@@ -22,6 +22,9 @@ class Exchange
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $parserClass = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $mainUrl = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -59,6 +62,18 @@ class Exchange
     public function setParserClass(?string $parserClass): static
     {
         $this->parserClass = $parserClass;
+
+        return $this;
+    }
+
+    public function getMainUrl(): ?string
+    {
+        return $this->mainUrl;
+    }
+
+    public function setMainUrl(?string $mainUrl): static
+    {
+        $this->mainUrl = $mainUrl;
 
         return $this;
     }
