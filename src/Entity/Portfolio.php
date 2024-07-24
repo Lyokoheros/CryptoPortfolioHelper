@@ -17,30 +17,30 @@ class Portfolio
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $Nazwa = null;
+    private ?string $name = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $StartingDate = null;
+    private ?\DateTimeInterface $startingDate = null;
 
     #[ORM\Column]
-    private ?int $BatchSize = null;
+    private ?int $batchSize = null;
 
     #[ORM\ManyToOne(inversedBy: 'portfolios')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $User = null;
+    private ?User $user = null;
 
     /**
      * @var Collection<int, TransactionBatch>
      */
     #[ORM\OneToMany(targetEntity: TransactionBatch::class, mappedBy: 'portfolio')]
-    private Collection $TransactionBatches;
+    private Collection $transactionBatches;
 
     #[ORM\Column]
     private bool $isDefault = false;
 
     public function __construct()
     {
-        $this->TransactionBatches = new ArrayCollection();
+        $this->transactionBatches = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -48,50 +48,50 @@ class Portfolio
         return $this->id;
     }
 
-    public function getNazwa(): ?string
+    public function getName(): ?string
     {
-        return $this->Nazwa;
+        return $this->name;
     }
 
-    public function setNazwa(string $Nazwa): static
+    public function setName(string $name): static
     {
-        $this->Nazwa = $Nazwa;
+        $this->name = $name;
 
         return $this;
     }
 
     public function getStartingDate(): ?\DateTimeInterface
     {
-        return $this->StartingDate;
+        return $this->startingDate;
     }
 
-    public function setStartingDate(\DateTimeInterface $StartingDate): static
+    public function setStartingDate(\DateTimeInterface $startingDate): static
     {
-        $this->StartingDate = $StartingDate;
+        $this->startingDate = $startingDate;
 
         return $this;
     }
 
     public function getBatchSize(): ?int
     {
-        return $this->BatchSize;
+        return $this->batchSize;
     }
 
-    public function setBatchSize(int $BatchSize): static
+    public function setBatchSize(int $batchSize): static
     {
-        $this->BatchSize = $BatchSize;
+        $this->batchSize = $batchSize;
 
         return $this;
     }
 
     public function getUser(): ?User
     {
-        return $this->User;
+        return $this->user;
     }
 
-    public function setUser(?User $User): static
+    public function setUser(?User $user): static
     {
-        $this->User = $User;
+        $this->user = $user;
 
         return $this;
     }
@@ -101,13 +101,13 @@ class Portfolio
      */
     public function getTransactionBatches(): Collection
     {
-        return $this->TransactionBatches;
+        return $this->transactionBatches;
     }
 
     public function addTransactionBatch(TransactionBatch $transactionBatch): static
     {
-        if (!$this->TransactionBatches->contains($transactionBatch)) {
-            $this->TransactionBatches->add($transactionBatch);
+        if (!$this->transactionBatches->contains($transactionBatch)) {
+            $this->transactionBatches->add($transactionBatch);
             $transactionBatch->setPortfolio($this);
         }
 
@@ -116,7 +116,7 @@ class Portfolio
 
     public function removeTransactionBatch(TransactionBatch $transactionBatch): static
     {
-        if ($this->TransactionBatches->removeElement($transactionBatch)) {
+        if ($this->transactionBatches->removeElement($transactionBatch)) {
             // set the owning side to null (unless already changed)
             if ($transactionBatch->getPortfolio() === $this) {
                 $transactionBatch->setPortfolio(null);
