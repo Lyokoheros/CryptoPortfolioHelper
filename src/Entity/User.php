@@ -16,22 +16,22 @@ class User
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $UserName = null;
+    private ?string $userName = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $Name = null;
+    private ?string $name = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $Surname = null;
+    private ?string $surname = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $Country = null;
+    private ?string $country = null;
 
     #[ORM\Column(length: 15)]
-    private ?string $NativeCurrency = null;
+    private ?string $nativeCurrency = null;
 
     #[ORM\Column(length: 15)]
-    private ?string $DisplayCurrency = null;
+    private ?string $displayCurrency = null;
 
     /**
      * @var Collection<int, Portfolio>
@@ -51,72 +51,72 @@ class User
 
     public function getUserName(): ?string
     {
-        return $this->UserName;
+        return $this->userName;
     }
 
-    public function setUserName(string $UserName): static
+    public function setUserName(string $userName): static
     {
-        $this->UserName = $UserName;
+        $this->userName = $userName;
 
         return $this;
     }
 
     public function getName(): ?string
     {
-        return $this->Name;
+        return $this->name;
     }
 
-    public function setName(?string $Name): static
+    public function setName(?string $name): static
     {
-        $this->Name = $Name;
+        $this->name = $name;
 
         return $this;
     }
 
     public function getSurname(): ?string
     {
-        return $this->Surname;
+        return $this->surname;
     }
 
-    public function setSurname(?string $Surname): static
+    public function setSurname(?string $surname): static
     {
-        $this->Surname = $Surname;
+        $this->surname = $surname;
 
         return $this;
     }
 
     public function getCountry(): ?string
     {
-        return $this->Country;
+        return $this->country;
     }
 
     public function setCountry(string $Country): static
     {
-        $this->Country = $Country;
+        $this->country = $Country;
 
         return $this;
     }
 
     public function getNativeCurrency(): ?string
     {
-        return $this->NativeCurrency;
+        return $this->nativeCurrency;
     }
 
-    public function setNativeCurrency(string $NativeCurrency): static
+    public function setNativeCurrency(string $nativeCurrency): static
     {
-        $this->NativeCurrency = $NativeCurrency;
+        $this->nativeCurrency = $nativeCurrency;
 
         return $this;
     }
 
     public function getDisplayCurrency(): ?string
     {
-        return $this->DisplayCurrency;
+        return $this->displayCurrency;
     }
 
-    public function setDisplayCurrency(string $DisplayCurrency): static
+    public function setDisplayCurrency(string $displayCurrency): static
     {
-        $this->DisplayCurrency = $DisplayCurrency;
+        $this->displayCurrency = $displayCurrency;
 
         return $this;
     }
