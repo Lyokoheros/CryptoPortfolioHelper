@@ -17,7 +17,7 @@ class PortfolioFixtures extends Fixture implements DependentFixtureInterface
                     'default' => false,
                     'name' => 'DCA portfolio',
                     'batchSize' => 3,
-                    'date' => new \DateTime('')
+                    'date' => '2021-07-05'
                 ]
             ]
                         
@@ -62,7 +62,7 @@ class PortfolioFixtures extends Fixture implements DependentFixtureInterface
                     $portfolio->setUser($user);
                     $portfolio->setName($portfolioData['name'] ?? null);
                     $portfolio->setBatchSize($portfolioData['batchSize'] ?? null);
-                    $portfolio->setStartingDate($portfolioData['date'] ?? new \DateTime());
+                    $portfolio->setStartingDate(new \DateTime($portfolioData['date'] ?? ''));
                     
                     $manager->persist($portfolio);
                 }
