@@ -39,6 +39,9 @@ class User
     #[ORM\OneToMany(targetEntity: Portfolio::class, mappedBy: 'User')]
     private Collection $portfolios;
 
+    #[ORM\Column(length: 127)]
+    private ?string $eMail = null;
+
     public function __construct()
     {
         $this->portfolios = new ArrayCollection();
@@ -147,6 +150,18 @@ class User
                 $portfolio->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEMail(): ?string
+    {
+        return $this->eMail;
+    }
+
+    public function setEMail(string $eMail): static
+    {
+        $this->eMail = $eMail;
 
         return $this;
     }
