@@ -48,7 +48,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             $user->setName($userData['name']);
             $user->setSurname($userData['surname']);
             $user->setUserName($userData['userName']);
-            $user->setEmail($userData['email']);
+            $user->setEMail($userData['email']);
             $user->setCountry($userData['country']);
             $user->setNativeCurrency(
                 $currencyRepository->findBy(['symbol' => $userData['nativeCurrency']]) 
