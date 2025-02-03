@@ -3,41 +3,40 @@
 namespace App\Repository;
 
 use App\Entity\User;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<User>
+ * @extends EnhancedEntityRepository<User>
  */
-class UserRepository extends ServiceEntityRepository
+class UserRepository extends EnhancedEntityRepository
 {
+    private $entityManager = $this->getEntityManager();
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, User::class);
     }
 
-    //    /**
-    //     * @return User[] Returns an array of User objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('u.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function getAllUsers(): array
+    {
+        $users = [];
+        foreach($this->findAll() as $user)
+        {
+            $users[$user->getId()] = $user->getUserName();
+        }
+        return $users;
+    }
 
-    //    public function findOneBySomeField($value): ?User
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function editUser($userData, $id): array
+    {
+        $user = new User();
+        foreach($userData as $fieldName => $fieldValue)
+        {
+            if($user->hasField($fieldName))
+            {
+                $methodName = 'set' . ucfirst($fieldName);
+                $user->$methodName($fieldValue);
+            }
+        }
+        return ['message succes'];
+    }
 }

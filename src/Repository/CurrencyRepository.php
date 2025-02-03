@@ -3,13 +3,12 @@
 namespace App\Repository;
 
 use App\Entity\Currency;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Currency>
+ * @extends EnhancedEntityRepository<Currency>
  */
-class CurrencyRepository extends ServiceEntityRepository
+class CurrencyRepository extends EnhancedEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

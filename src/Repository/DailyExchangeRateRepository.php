@@ -3,13 +3,12 @@
 namespace App\Repository;
 
 use App\Entity\DailyExchangeRate;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<DailyExchangeRate>
+ * @extends EnhancedEntityRepository<DailyExchangeRate>
  */
-class DailyExchangeRateRepository extends ServiceEntityRepository
+class DailyExchangeRateRepository extends EnhancedEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

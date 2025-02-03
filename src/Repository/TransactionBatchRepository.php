@@ -3,13 +3,12 @@
 namespace App\Repository;
 
 use App\Entity\TransactionBatch;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<TransactionBatch>
+ * @extends EnhancedEntityRepository<TransactionBatch>
  */
-class TransactionBatchRepository extends ServiceEntityRepository
+class TransactionBatchRepository extends EnhancedEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

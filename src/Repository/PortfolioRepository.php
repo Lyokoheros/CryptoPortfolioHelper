@@ -3,13 +3,12 @@
 namespace App\Repository;
 
 use App\Entity\Portfolio;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Portfolio>
+ * @extends EnhancedEntityRepository<Portfolio>
  */
-class PortfolioRepository extends ServiceEntityRepository
+class PortfolioRepository extends EnhancedEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

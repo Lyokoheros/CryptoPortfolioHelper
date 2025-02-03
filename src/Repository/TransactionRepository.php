@@ -3,13 +3,12 @@
 namespace App\Repository;
 
 use App\Entity\Transaction;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Transaction>
+ * @extends EnhancedEntityRepository<Transaction>
  */
-class TransactionRepository extends ServiceEntityRepository
+class TransactionRepository extends EnhancedEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
