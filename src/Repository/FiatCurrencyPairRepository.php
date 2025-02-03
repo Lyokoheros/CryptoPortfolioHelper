@@ -3,13 +3,12 @@
 namespace App\Repository;
 
 use App\Entity\FiatCurrencyPair;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<FiatCurrencyPair>
+ * @extends EnhancedEntityRepository<FiatCurrencyPair>
  */
-class FiatCurrencyPairRepository extends ServiceEntityRepository
+class FiatCurrencyPairRepository extends EnhancedEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
