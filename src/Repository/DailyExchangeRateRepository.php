@@ -10,10 +10,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class DailyExchangeRateRepository extends EnhancedEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    /*public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, DailyExchangeRate::class);
-    }
+    }*/
 
     //    /**
     //     * @return DailyExchangeRate[] Returns an array of DailyExchangeRate objects

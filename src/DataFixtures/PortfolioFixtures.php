@@ -24,10 +24,10 @@ class PortfolioFixtures extends Fixture implements DependentFixtureInterface
         ]
     ];
 
-    public function getDependencies()
+    public function getDependencies():array
     {
         return [
-            UserFixtures::class,
+            UserFixtures::class
         ];
     }
 

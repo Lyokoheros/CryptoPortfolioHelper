@@ -22,7 +22,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         ]
     ];
 
-    public function getDependencies()
+    public function getDependencies(): array
     {
         return [
             CurrencyFixtures::class,
@@ -51,10 +51,10 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             $user->setEMail($userData['email']);
             $user->setCountry($userData['country']);
             $user->setNativeCurrency(
-                $currencyRepository->findBy(['symbol' => $userData['nativeCurrency']]) 
+                $currencyRepository->findOneBy(['symbol' => $userData['nativeCurrency']]) 
             );
             $user->setDisplayCurrency(
-                $currencyRepository->findBy(['symbol' => $userData['displayCurrency']]) 
+                $currencyRepository->findOneBy(['symbol' => $userData['displayCurrency']])
             );
 
             $manager->persist($user);

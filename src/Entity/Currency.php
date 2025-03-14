@@ -52,6 +52,11 @@ class Currency
     #[ORM\JoinColumn(nullable: true)]
     private ?self $pricesCurrency = null;
 
+    public function __toString()
+    {
+        return $this->symbol;
+    }
+    
     public function getId(): ?int
     {
         return $this->id;

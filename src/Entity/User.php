@@ -27,12 +27,6 @@ class User
     #[ORM\Column(length: 255)]
     private ?string $country = null;
 
-    #[ORM\Column(length: 15)]
-    private ?string $nativeCurrency = null;
-
-    #[ORM\Column(length: 15)]
-    private ?string $displayCurrency = null;
-
     /**
      * @var Collection<int, Portfolio>
      */
@@ -41,6 +35,12 @@ class User
 
     #[ORM\Column(length: 127)]
     private ?string $eMail = null;
+
+    #[ORM\ManyToOne]
+    private ?Currency $nativeCurrency = null;
+
+    #[ORM\ManyToOne]
+    private ?Currency $displayCurrency = null;
 
     public function __construct()
     {
@@ -100,29 +100,6 @@ class User
         return $this;
     }
 
-    public function getNativeCurrency(): ?string
-    {
-        return $this->nativeCurrency;
-    }
-
-    public function setNativeCurrency(string $nativeCurrency): static
-    {
-        $this->nativeCurrency = $nativeCurrency;
-
-        return $this;
-    }
-
-    public function getDisplayCurrency(): ?string
-    {
-        return $this->displayCurrency;
-    }
-
-    public function setDisplayCurrency(string $displayCurrency): static
-    {
-        $this->displayCurrency = $displayCurrency;
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, Portfolio>
@@ -162,6 +139,30 @@ class User
     public function setEMail(string $eMail): static
     {
         $this->eMail = $eMail;
+
+        return $this;
+    }
+
+    public function getNativeCurrency(): ?Currency
+    {
+        return $this->nativeCurrency;
+    }
+
+    public function setNativeCurrency(?Currency $nativeCurrency): static
+    {
+        $this->nativeCurrency = $nativeCurrency;
+
+        return $this;
+    }
+
+    public function getDisplayCurrency(): ?Currency
+    {
+        return $this->displayCurrency;
+    }
+
+    public function setDisplayCurrency(?Currency $displayCurrency): static
+    {
+        $this->displayCurrency = $displayCurrency;
 
         return $this;
     }

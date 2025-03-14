@@ -10,10 +10,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TransactionRepository extends EnhancedEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    /*public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Transaction::class);
-    }
+    }*/
 
     //    /**
     //     * @return Transaction[] Returns an array of Transaction objects
