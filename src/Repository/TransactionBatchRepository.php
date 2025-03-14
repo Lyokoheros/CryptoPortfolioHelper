@@ -10,10 +10,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TransactionBatchRepository extends EnhancedEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    /*public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TransactionBatch::class);
-    }
+    }*/
 
     //    /**
     //     * @return TransactionBatch[] Returns an array of TransactionBatch objects

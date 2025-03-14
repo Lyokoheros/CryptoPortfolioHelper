@@ -10,10 +10,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class FiatCurrencyPairRepository extends EnhancedEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    /*public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, FiatCurrencyPair::class);
-    }
+    }*/
 
     //    /**
     //     * @return FiatCurrencyPair[] Returns an array of FiatCurrencyPair objects

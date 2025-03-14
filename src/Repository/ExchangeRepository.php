@@ -10,11 +10,6 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ExchangeRepository extends EnhancedEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Exchange::class);
-    }
-
     //    /**
     //     * @return Exchange[] Returns an array of Exchange objects
     //     */

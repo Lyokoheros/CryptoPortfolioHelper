@@ -10,10 +10,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class CurrencyRepository extends EnhancedEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    /*public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Currency::class);
-    }
+        parent::__construct($registry);
+    }*/
 
     //    /**
     //     * @return Currency[] Returns an array of Currency objects

@@ -133,7 +133,7 @@ class TransactionFixtures extends Fixture implements DependentFixtureInterface
     private $userBatches = [];
 
 
-    public function getDependencies()
+    public function getDependencies(): array
     {
         return [
             PortfolioFixtures::class,

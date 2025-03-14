@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Entity\Currency;
+use App\Repository\CurrencyRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -10,10 +12,14 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class UserRepository extends EnhancedEntityRepository
 {
-    private $entityManager = $this->getEntityManager();
-    public function __construct(ManagerRegistry $registry)
+    private $entityManager;
+    private CurrencyRepository $currencyRepository;
+
+    public function __construct(ManagerRegistry $registry, CurrencyRepository $currencyRepository)
     {
-        parent::__construct($registry, User::class);
+        parent::__construct($registry);
+        $this->currencyRepository = $currencyRepository;
+        $this->entityManager = $this->getEntityManager();
     }
 
     public function getAllUsers(): array
@@ -28,15 +34,19 @@ class UserRepository extends EnhancedEntityRepository
 
     public function editUser($userData, $id): array
     {
-        $user = new User();
-        foreach($userData as $fieldName => $fieldValue)
+
+        $user = $this->find($id);
+
+        if(isset($userData['nativeCurrency']))
         {
-            if($user->hasField($fieldName))
-            {
-                $methodName = 'set' . ucfirst($fieldName);
-                $user->$methodName($fieldValue);
-            }
+            $userData['nativeCurrency']  = $this->currencyRepository->findOneBy(['symbol' => $userData['nativeCurrency']]);
         }
+        if(isset($userData['displayCurrency']))
+        {
+            $userData['displayCurrency']  = $this->currencyRepository->findOneBy(['symbol' => $userData['displayCurrency']]);
+        }
+        $this->editEntity($user, $userData);
+
         return ['message succes'];
     }
 }
