@@ -111,11 +111,11 @@ class CurrencyFixtures extends Fixture
     ];
     private $fiatCurrencies = [];
     private $cryptoCurrencies = [];
+    private $currencyRepository;
 
     public function load(ObjectManager $manager): void
     {
-        // $product = new Product();
-        // $manager->persist($product);
+        $this->currencyRepository = $manager->getRepository('App\Entity\Currency');
         $this->loadFiatMoney($manager);
         $this->loadCryptoCurrencies($manager);
 
@@ -124,6 +124,8 @@ class CurrencyFixtures extends Fixture
 
     public function loadFiatMoney(ObjectManager $objectManager): void
     {
+
+
         foreach(self::FIAT_CURRENCIES_DATA as $currencyData)
         {
             $currency = new Currency();
@@ -133,11 +135,13 @@ class CurrencyFixtures extends Fixture
             $objectManager->persist($currency);
             $this->fiatCurrencies[$currencyData['symbol']]=$currency;
         }
-
+       
         foreach($this->fiatCurrencies as $fiatCurrency)
         {
-            $fiatCurrency->setPricesCurrency($this->fiatCurrencies['PLN']);
-            $objectManager->persist($currency);
+            
+            $fiatCurrency->setPricesCurrency(
+                $this->currencyRepository->findOneBy(['symbol' => $this->fiatCurrencies['PLN']]));
+            $objectManager->persist($fiatCurrency);
         }
     }
 

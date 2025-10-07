@@ -16,8 +16,8 @@ class Portfolio
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    #[ORM\Column(length: 255, options: ['default' => 'Main Portfolio'])]
+    private string $name = 'Main Portfolio';
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $startingDate = null;
@@ -79,7 +79,7 @@ class Portfolio
 
     public function setBatchSize(int $batchSize): static
     {
-        $this->batchSize = $batchSize;
+        $this->batchSize = $batchSize ?? 1;
 
         return $this;
     }

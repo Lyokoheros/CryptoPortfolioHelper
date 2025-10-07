@@ -51,7 +51,9 @@ class PortfolioFixtures extends Fixture implements DependentFixtureInterface
             $portfolio = new Portfolio();
             $portfolio->setUser($user);
             $portfolio->setDefault(true);
+            $portfolio->setBatchSize(1);
             $portfolio->setStartingDate(new \DateTime());
+            $portfolio->setName('Main portfolio');
 
             $manager->persist($portfolio);
             if (isset(self::USERS_PORTFOLIO_DATA[$user->getUserName()]))
@@ -60,8 +62,8 @@ class PortfolioFixtures extends Fixture implements DependentFixtureInterface
                 {
                     $portfolio = new Portfolio();
                     $portfolio->setUser($user);
-                    $portfolio->setName($portfolioData['name'] ?? null);
-                    $portfolio->setBatchSize($portfolioData['batchSize'] ?? null);
+                    $portfolio->setName($portfolioData['name'] ?? 'unknown');
+                    $portfolio->setBatchSize($portfolioData['batchSize'] ?? 1);
                     $portfolio->setStartingDate(new \DateTime($portfolioData['date'] ?? ''));
                     
                     $manager->persist($portfolio);

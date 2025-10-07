@@ -154,7 +154,7 @@ class TransactionFixtures extends Fixture implements DependentFixtureInterface
 
         foreach(self::TRANSACTION_BATCHES_DATA as $userBatchesData)
         {
-            $user = $manager->getRepository(User::class)->findBy(['username' => $userBatchesData['user']]);
+            $user = $manager->getRepository(User::class)->findBy(['userName' => $userBatchesData['user']]);
 
             foreach($userBatchesData['data'] as $portfolioBatches)
             {
@@ -166,6 +166,7 @@ class TransactionFixtures extends Fixture implements DependentFixtureInterface
                 $batches = [];
                 foreach($portfolioBatches['batches'] as $batchData)
                 {
+                    if($portfolio == null) {continue;}
                     $transactionBatch = new TransactionBatch();
                     $transactionBatch->setPortfolio($portfolio);
                     $transactionBatch->setName($batchData['name']);

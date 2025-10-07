@@ -59,7 +59,7 @@ class User
 
     public function setUserName(string $userName): static
     {
-        $this->userName = $userName;
+        $this->userName = $userName ?? ($this->getName() + $this->getSurname());
 
         return $this;
     }
