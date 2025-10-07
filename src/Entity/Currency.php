@@ -50,7 +50,7 @@ class Currency
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\Column(nullable: true)]
     #[ORM\JoinColumn(nullable: true)]
-    private ?self $pricesCurrency = null;
+    private ?Currency $pricesCurrency = null;
 
     public function __toString()
     {
@@ -195,12 +195,12 @@ class Currency
         return $this;
     }
 
-    public function getPricesCurrency(): ?self
+    public function getPricesCurrency(): ?Currency
     {
         return $this->pricesCurrency;
     }
 
-    public function setPricesCurrency(?self $pricesCurrency): static
+    public function setPricesCurrency(?Currency $pricesCurrency): static
     {
         $this->pricesCurrency = $pricesCurrency;
 

@@ -48,19 +48,22 @@ class UserController extends AbstractController
 
     //user registration and login [to do in later versions]
     
-    #[Route('/{username}', name: 'get_by_username', methods: ['GET'])]
-    public function getUserByName(string $username): JsonResponse
-    {        
-        return $this->json([
-            $this->repository->findOneBy(['username' => $username])
-        ]);
-    }
-
     #[Route('/{id<\d+>}', name: 'get_by_id', methods: ['GET'])]
     public function getUserById(User $user): JsonResponse
     {
+        
         return $this->json($user);
     }
+    
+    #[Route('/{username}', name: 'get_by_username', methods: ['GET'])]
+    public function getUserByName(string $username): JsonResponse
+    {      
+        var_dump($username);  
+        return $this->json(
+            $this->repository->findOneBy(['userName' => $username])
+        );
+    }
+    
 
     #[Route('/edit', name: 'edit', methods: ['POST'])]
     public function EditUser(Request $request): JsonResponse

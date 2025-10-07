@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\User;
 use App\Entity\Currency;
 use App\Repository\CurrencyRepository;
+use App\Repository\EnhancedEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**

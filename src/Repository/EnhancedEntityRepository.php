@@ -9,7 +9,7 @@ use ReflectionClass;
 /**
  * @extends ServiceEntityRepository<object>
  */
-class EnhancedEntityRepository extends ServiceEntityRepository
+abstract class EnhancedEntityRepository extends ServiceEntityRepository
 {
     protected $entityClass;
 
@@ -36,15 +36,27 @@ class EnhancedEntityRepository extends ServiceEntityRepository
         return ['message' => 'success'];
     }
 
-    public static function getEntityClass(): string
+    /*protected static function getEntityClass(): string
     {
         $class = static::class;
-        if (!is_subclass_of($class, ServiceEntityRepository::class)) {
-            throw new \LogicException('This class should be used with entities that extend ServiceEntityRepository.');
-        }
 
         $entityNamespace = substr($class, 0, strrpos($class, 'Repository'));
 
         return substr($entityNamespace, strrpos($entityNamespace, '\\') + 1);
+    }*/
+
+    protected static function getEntityClass(): string
+    {
+        $class = static::class;
+        $repositoryNamespace = substr($class, 0, strrpos($class, 'Repository'));
+        $entityClass = substr($repositoryNamespace, strrpos($repositoryNamespace, '\\') + 1);
+
+        $entityNamespace = "App\\Entity\\" . $entityClass;
+
+        if (!class_exists($entityNamespace)) {
+            throw new \LogicException('Entity class does not exist: ' . $entityNamespace);
+        }
+
+        return $entityNamespace;
     }
 }

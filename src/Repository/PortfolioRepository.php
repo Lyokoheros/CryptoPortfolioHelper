@@ -10,10 +10,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class PortfolioRepository extends EnhancedEntityRepository
 {
-    /*public function __construct(ManagerRegistry $registry)
+    public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Portfolio::class);
-    }*/
+        parent::__construct($registry);
+    }
 
     //    /**
     //     * @return Portfolio[] Returns an array of Portfolio objects
