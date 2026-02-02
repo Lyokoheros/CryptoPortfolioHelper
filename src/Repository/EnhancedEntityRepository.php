@@ -24,6 +24,9 @@ abstract class EnhancedEntityRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
 
         foreach ($data as $fieldName => $fieldValue) {
+            if ($fieldName === 'id') {
+                continue; // Skip the ID field
+            }
             $setter = 'set' . ucfirst($fieldName);
             if (method_exists($entity, $setter)) {
                 $entity->$setter($fieldValue);

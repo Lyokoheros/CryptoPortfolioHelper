@@ -33,7 +33,23 @@ class UserRepository extends EnhancedEntityRepository
         return $users;
     }
 
-    public function editUser($userData, $id): array
+    public function registerUser($userData): array
+    {
+        $user = new User();
+        $user->setUserName($userData['userName']);
+        $user->setCountry($userData['country']);
+        $user->setEMail($userData['eMail']);
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        echo $user->getId();
+
+        //to do: hash password and validate data
+        $this->editUser($user->getId(), $userData);        
+        return ['message' => 'success'];
+    }   
+
+    public function editUser($id, $userData): array
     {
 
         $user = $this->find($id);
@@ -49,5 +65,11 @@ class UserRepository extends EnhancedEntityRepository
         $this->editEntity($user, $userData);
 
         return ['message succes'];
+    }
+
+    public function removeUser($id): array
+    {
+        $this->remove($this->find($id));
+        return ['message' => 'success'];
     }
 }

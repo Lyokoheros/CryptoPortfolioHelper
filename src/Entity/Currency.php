@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\CurrencyRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CurrencyRepository::class)]
 class Currency
@@ -12,12 +13,15 @@ class Currency
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['userProfile'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 63)]
+    #[Groups(['userProfile'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 15)]
+    #[Groups(['userProfile'])]
     private ?string $symbol = null;
 
     #[ORM\Column(length: 127, nullable: true)]

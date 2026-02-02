@@ -6,6 +6,8 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User
@@ -13,33 +15,44 @@ class User
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['userProfile'])]
     private ?string $userName = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['userProfile'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['userProfile'])]
     private ?string $surname = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['userProfile'])]
     private ?string $country = null;
 
     /**
      * @var Collection<int, Portfolio>
      */
-    #[ORM\OneToMany(targetEntity: Portfolio::class, mappedBy: 'User')]
+    #[ORM\OneToMany(targetEntity: Portfolio::class, mappedBy: 'user')]
+    #[Groups(['userProfile'])]
+    #[MaxDepth(1)]
     private Collection $portfolios;
 
     #[ORM\Column(length: 127)]
+    #[Groups(['userProfile'])]
     private ?string $eMail = null;
 
     #[ORM\ManyToOne]
+    #[Groups(['userProfile'])]
+    #[MaxDepth(1)]
     private ?Currency $nativeCurrency = null;
 
     #[ORM\ManyToOne]
+    #[Groups(['userProfile'])]
+    #[MaxDepth(1)]
     private ?Currency $displayCurrency = null;
 
     public function __construct()

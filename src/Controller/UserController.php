@@ -51,17 +51,18 @@ class UserController extends AbstractController
     #[Route('/{id<\d+>}', name: 'get_by_id', methods: ['GET'])]
     public function getUserById(User $user): JsonResponse
     {
-        
-        return $this->json($user);
+        return $this->json($user, context: ['groups' => 'userProfile']);
     }
     
     #[Route('/{username}', name: 'get_by_username', methods: ['GET'])]
     public function getUserByName(string $username): JsonResponse
-    {      
-        var_dump($username);  
-        return $this->json(
-            $this->repository->findOneBy(['userName' => $username])
-        );
+    { 
+        echo $username;
+        $user = $this->repository->findOneBy(['userName' => $username]);
+        if (!$user) {
+            return $this->json(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
+        }
+        return $this->json($user, context: ['groups' => 'userProfile']);
     }
     
 
@@ -70,18 +71,40 @@ class UserController extends AbstractController
     {
         $userData = json_decode($request->getContent(), true);
 
-        $this->repository->editUser($userData);
+        $id = $userData['id'] ?? '-1';
+        if ($id === '-1') 
+        {
+            return $this->json(
+                ['error' => 'User ID missing'], 
+                Response::HTTP_BAD_REQUEST);
+        }
+
+        $this->repository->editUser($id, $userData);
         
         return $this->json([
             'message' => 'User data changed'
         ]);
     }
 
-    #[Route('/delete/{id<\d+>}', name: 'delete', methods: ['DELETE'])]
-    public function DeleteUser(): JsonResponse
+    #[Route('/new', name: 'register', methods: ['POST'])]
+    public function RegisterUser(Request $request): JsonResponse
     {
+        $userData = json_decode($request->getContent(), true);
+
+        $this->repository->registerUser($userData);
+       
         return $this->json([
-            'message' => 'User deleted [to do]'
+            'message' => 'User registered'
+        ]);
+    }    
+
+    #[Route('/delete/{id<\d+>}', name: 'delete', methods: ['DELETE'])]
+    public function DeleteUser(int $id): JsonResponse
+    {
+        $this->repository->removeUser($id);
+        return $this->json([
+            'message' => 'User deleted'
         ]);
     }    
 }
+ 
