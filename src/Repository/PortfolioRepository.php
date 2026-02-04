@@ -15,28 +15,24 @@ class PortfolioRepository extends EnhancedEntityRepository
         parent::__construct($registry);
     }
 
-    //    /**
-    //     * @return Portfolio[] Returns an array of Portfolio objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('p.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function addPortfolio($portfolioData): Portfolio
+    {
+        
+        $portfolio = new Portfolio();
+        //to do: check for required fields (user_id, portfolio_name) 
+        //and set defaults for optional fields:
+        //$portfolioData['batchSize'] = 1;
+        //$portfolioData['isDefault'] = false;
+        //$portfolioData['totalPortfolioValue'] = 0.0;
+        //starting date is set in constructor to current date        
+        $this->editEntity($portfolio, $portfolioData);
 
-    //    public function findOneBySomeField($value): ?Portfoli
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        return $portfolio;
+    }
+
+    public function removePortfolio(Portfolio $portfolio): void
+    {
+        $this->removeEntity($portfolio);
+    }
+
 }
