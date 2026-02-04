@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: PortfolioRepository::class)]
 class Portfolio
@@ -14,29 +16,41 @@ class Portfolio
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['userProfile', 'portfolioList', 'portfolioView'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, options: ['default' => 'Main Portfolio'])]
+    #[Groups(['userProfile', 'portfolioList', 'portfolioView'])]
     private string $name = 'Main Portfolio';
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['userProfile', 'portfolioList', 'portfolioView'])]
     private ?\DateTimeInterface $startingDate = null;
 
     #[ORM\Column]
+    #[Groups(['portfolioList', 'portfolioView'])]
     private ?int $batchSize = null;
 
     #[ORM\ManyToOne(inversedBy: 'portfolios')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?User $user = null;
 
     /**
      * @var Collection<int, TransactionBatch>
      */
     #[ORM\OneToMany(targetEntity: TransactionBatch::class, mappedBy: 'portfolio')]
+    #[Groups(['portfolioView'])]
     private Collection $transactionBatches;
 
     #[ORM\Column]
+    #[Groups(['userProfile', 'portfolioList', 'portfolioView'])]
     private bool $isDefault = false;
+
+    
+    #[ORM\Column(options: ['default' => 0.0])]
+    #[Groups(['userProfile', 'portfolioList', 'portfolioView'])]
+    private float $totalPortfolioValue = 0.0;
 
     public function __construct()
     {
@@ -134,6 +148,18 @@ class Portfolio
     public function setDefault(bool $isDefault): static
     {
         $this->isDefault = $isDefault;
+
+        return $this;
+    }
+
+    public function getTotalPortfolioValue(): ?float
+    {
+        return $this->totalPortfolioValue;
+    }
+
+    public function setTotalPortfolioValue(float $totalPortfolioValue): static
+    {
+        $this->totalPortfolioValue = $totalPortfolioValue;
 
         return $this;
     }

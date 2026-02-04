@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TransactionBatchRepository::class)]
 class TransactionBatch
@@ -17,24 +18,30 @@ class TransactionBatch
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['portfolioView'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $date = null;
 
+    private ?\DateTimeInterface $date = null;
+    #[Groups(['portfolioView'])]
     #[ORM\Column]
     private ?int $ordinalNumber = null;
 
     #[ORM\Column(length: 15)]
+    #[Groups(['portfolioView'])]
+
     private ?string $type = null;
 
     #[ORM\Column]
+    #[Groups(['portfolioView'])]
     private ?bool $finished = null;
 
     /**
      * @var Collection<int, Transaction>
      */
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'transactionBatch')]
+    #[Groups(['portfolioView'])]
     private Collection $transactions;
 
     #[ORM\ManyToOne(inversedBy: 'TransactionBatches')]
