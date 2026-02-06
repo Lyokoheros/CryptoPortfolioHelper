@@ -8,11 +8,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TransactionRepository::class)]
+#[ORM\Table(name: 'transactions')]
 class Transaction
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['portfolioView', 'transactionBatchList'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'transactions')]
@@ -25,22 +27,24 @@ class Transaction
     
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['portfolioView'])]
+    #[Groups(['portfolioView', 'transactionBatchList'])]
 
     private ?Currency $boughtCurrency = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['portfolioView'])]
+    #[Groups(['portfolioView', 'transactionBatchList'])]
     private ?Currency $soldCurrency = null;
     
     #[ORM\ManyToOne]
     private ?Currency $feeCurrency = null;
 
     #[ORM\Column]
+    #[Groups(['transactionBatchList'])]
     private ?float $buyValue = null;
 
     #[ORM\Column]
+    #[Groups(['transactionBatchList'])]
     private ?float $sellValue = null;
    
     #[ORM\Column]
@@ -53,6 +57,7 @@ class Transaction
     private ?float $effectivePrice = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['transactionBatchList'])]
     private ?\DateTimeInterface $date = null;
 
     public function getId(): ?int

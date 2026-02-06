@@ -16,16 +16,16 @@ class Portfolio
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['userProfile', 'portfolioList', 'portfolioView'])]
+    #[Groups(['userProfile', 'portfolioList', 'portfolioView', 'transactionBatchList'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, options: ['default' => 'Main Portfolio'])]
-    #[Groups(['userProfile', 'portfolioList', 'portfolioView'])]
+    #[Groups(['userProfile', 'portfolioList', 'portfolioView', 'transactionBatchList'])]
     private string $name = 'Main Portfolio';
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['userProfile', 'portfolioList', 'portfolioView'])]
-    private ?\DateTimeInterface $startingDate = null;
+    private \DateTimeInterface $startingDate;
 
     #[ORM\Column]
     #[Groups(['portfolioList', 'portfolioView'])]
@@ -55,6 +55,7 @@ class Portfolio
     public function __construct()
     {
         $this->transactionBatches = new ArrayCollection();
+        $this->startingDate = new \DateTime();
     }
 
     public function getId(): ?int

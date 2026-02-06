@@ -67,7 +67,7 @@ class UserController extends AbstractController
     
 
     #[Route('/edit', name: 'edit', methods: ['POST'])]
-    public function EditUser(Request $request): JsonResponse
+    public function editUser(Request $request): JsonResponse
     {
         $userData = json_decode($request->getContent(), true);
 
@@ -87,7 +87,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/new', name: 'register', methods: ['POST'])]
-    public function RegisterUser(Request $request): JsonResponse
+    public function registerUser(Request $request): JsonResponse
     {
         $userData = json_decode($request->getContent(), true);
 
@@ -99,7 +99,7 @@ class UserController extends AbstractController
     }    
 
     #[Route('/delete/{id<\d+>}', name: 'delete', methods: ['DELETE'])]
-    public function DeleteUser(int $id): JsonResponse
+    public function deleteUser(int $id): JsonResponse
     {
         $this->repository->removeUser($id);
         return $this->json([

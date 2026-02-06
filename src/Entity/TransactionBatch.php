@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TransactionBatchRepository::class)]
+#[ORM\Table(name: 'transaction_batches')]
 class TransactionBatch
 {
     #[ORM\Id]
@@ -18,34 +19,35 @@ class TransactionBatch
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['portfolioView'])]
+    #[Groups(['portfolioView', 'transactionBatchList'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
 
     private ?\DateTimeInterface $date = null;
-    #[Groups(['portfolioView'])]
+    #[Groups(['portfolioView', 'transactionBatchList'])]
     #[ORM\Column]
     private ?int $ordinalNumber = null;
 
     #[ORM\Column(length: 15)]
-    #[Groups(['portfolioView'])]
+    #[Groups(['portfolioView', 'transactionBatchList'])]
 
     private ?string $type = null;
 
     #[ORM\Column]
-    #[Groups(['portfolioView'])]
+    #[Groups(['portfolioView', 'transactionBatchList'])]
     private ?bool $finished = null;
 
     /**
      * @var Collection<int, Transaction>
      */
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'transactionBatch')]
-    #[Groups(['portfolioView'])]
+    #[Groups(['portfolioView', 'transactionBatchList'])]
     private Collection $transactions;
 
     #[ORM\ManyToOne(inversedBy: 'TransactionBatches')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['transactionBatchList'])]
     private ?Portfolio $portfolio = null;
 
     public function __construct()
