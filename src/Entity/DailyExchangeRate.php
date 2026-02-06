@@ -30,10 +30,6 @@ class DailyExchangeRate
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $Date = null;
 
-    #[ORM\ManyToOne(inversedBy: 'ExchengedCurrencies')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?FiatCurrencyPair $pairGlobalData = null;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -83,18 +79,6 @@ class DailyExchangeRate
     public function setDate(\DateTimeInterface $Date): static
     {
         $this->Date = $Date;
-
-        return $this;
-    }
-
-    public function getPairGlobalData(): ?FiatCurrencyPair
-    {
-        return $this->pairGlobalData;
-    }
-
-    public function setPairGlobalData(?FiatCurrencyPair $pairGlobalData): static
-    {
-        $this->pairGlobalData = $pairGlobalData;
 
         return $this;
     }
