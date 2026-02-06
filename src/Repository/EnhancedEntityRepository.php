@@ -12,17 +12,20 @@ use ReflectionClass;
 abstract class EnhancedEntityRepository extends ServiceEntityRepository
 {
     protected $entityClass;
+    protected $entityManager;
 
     public function __construct(ManagerRegistry $registry)
     {
         $this->entityClass = static::getEntityClass();
+        $this->entityManager = $registry->getManager();
         parent::__construct($registry, $this->entityClass);
+        
+
     }
 
     public function editEntity(object $entity, array $data): array
     {
-        $entityManager = $this->getEntityManager();
-
+        
         foreach ($data as $fieldName => $fieldValue) {
             if ($fieldName === 'id') {
                 continue; // Skip the ID field
@@ -33,12 +36,20 @@ abstract class EnhancedEntityRepository extends ServiceEntityRepository
             }
         }
 
-        $entityManager->persist($entity);
-        $entityManager->flush();
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
 
         return ['message' => 'success'];
     }
 
+    public function removebyId(int $id): void
+    {
+        $entity = $this->find($id);
+        if ($entity !== null) {
+            $this->entityManager->remove($entity);
+            $this->entityManager->flush();
+        }
+    }
     /*protected static function getEntityClass(): string
     {
         $class = static::class;

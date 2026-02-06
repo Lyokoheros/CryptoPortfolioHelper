@@ -15,6 +15,53 @@ class TransactionBatchRepository extends EnhancedEntityRepository
         parent::__construct($registry);
     }
 
+
+    public function addTransactionBatch($transactionBatchData): void
+    {
+        $transactionBatch = new TransactionBatch();
+
+        if($transactionBatchData['portfolioId'])
+        {
+            $portfolio = $this->entityManager
+                ->getRepository('App\Entity\Portfolio')
+                ->find($transactionBatchData['portfolioId']);
+            $transactionBatch->setPortfolio($portfolio);
+        }
+        else
+        {
+            throw new \RuntimeException('Portfolio (portfolioId) is required to create a Transaction Batch');
+        }
+
+        $this->entityManager->persist($transactionBatch);
+
+        $this->editTransactionBatch(
+            $transactionBatch->getId(), 
+            $transactionBatchData,
+            $transactionBatch
+        );
+    }   
+
+
+    public function editTransactionBatch(
+        $id, $transactionBatchData,
+        $transactionBatch = null
+    ): void {
+        if($transactionBatch === null)
+        {
+            $transactionBatch = $this->find($id);
+        }
+
+        if($transactionBatchData['portfolioId'])
+        {
+            $portfolio = $this->entityManager
+                ->getRepository('App\Entity\Portfolio')
+                ->find($transactionBatchData['portfolioId']);
+            $transactionBatch->setPortfolio($portfolio);
+        }
+
+        $this->editEntity($transactionBatch, $transactionBatchData);
+    }
+
     //    /**
     //     * @return TransactionBatch[] Returns an array of TransactionBatch objects
     //     */

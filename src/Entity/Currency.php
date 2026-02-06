@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CurrencyRepository::class)]
+#[ORM\Table(name: 'currencies')]
 class Currency
 {
     #[ORM\Id]

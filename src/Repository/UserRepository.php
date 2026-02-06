@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Entity\Portfolio;
 use App\Entity\Currency;
 use App\Repository\CurrencyRepository;
 use App\Repository\EnhancedEntityRepository;
@@ -13,14 +14,12 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class UserRepository extends EnhancedEntityRepository
 {
-    private $entityManager;
     private CurrencyRepository $currencyRepository;
 
     public function __construct(ManagerRegistry $registry, CurrencyRepository $currencyRepository)
     {
         parent::__construct($registry);
         $this->currencyRepository = $currencyRepository;
-        $this->entityManager = $this->getEntityManager();
     }
 
     public function getAllUsers(): array
@@ -42,6 +41,9 @@ class UserRepository extends EnhancedEntityRepository
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+
+        $mainPortfolio = new Portfolio();
+        $mainPortfolio->setUser($user);
         echo $user->getId();
 
         //to do: hash password and validate data
@@ -51,7 +53,6 @@ class UserRepository extends EnhancedEntityRepository
 
     public function editUser($id, $userData): array
     {
-
         $user = $this->find($id);
 
         if(isset($userData['nativeCurrency']))
