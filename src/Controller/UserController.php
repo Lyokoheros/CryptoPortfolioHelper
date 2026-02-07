@@ -2,8 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\Transaction;
 use App\Entity\User;
 use App\Entity\Currency;
+use App\Entity\DailyExchangeRate;
+use App\Entity\Exchange;
+use App\Entity\Portfolio;
+use App\Entity\TransactionBatch;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,6 +16,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/user', name: 'app_user')]
 class UserController extends AbstractController
@@ -33,17 +39,39 @@ class UserController extends AbstractController
     }
 
     #[Route('/test', name: 'test', methods: ['GET'])]
-    public function testCurrency(UserRepository $userRepository): Response
+    public function testCurrency(UserRepository $userRepository, SerializerInterface $serializer): Response
     {
-        $currency = $userRepository->getEntityManager()
+        $users = $userRepository->findAll();
+        $currencies = $userRepository->getEntityManager()
             ->getRepository(Currency::class)
-            ->findOneBy(['symbol' => 'PLN']);
+            ->findAll();
+        $portfolios = $userRepository->getEntityManager()
+            ->getRepository(Portfolio::class)
+            ->findAll();    
+        $transactionBatches = $userRepository->getEntityManager()
+            ->getRepository(TransactionBatch::class)
+            ->findAll();
+        $transactions = $userRepository->getEntityManager()
+            ->getRepository(Transaction::class)
+            ->findAll();
+        $DailyExchangeRates = $userRepository->getEntityManager()
+            ->getRepository(DailyExchangeRate::class)
+            ->findAll();
+        $exchanges = $userRepository->getEntityManager()
+            ->getRepository(Exchange::class)
+            ->findAll();
 
-        if (null === $currency) {
-            throw new \RuntimeException('Currency not found');
-        }
-
-        return new Response(sprintf('The currency "%s" exists.', $currency->getSymbol()));
+        $database = [
+        'users' => json_decode($serializer->serialize($users, 'json', ['groups' => 'userProfile']), true),
+        'portfolios' => json_decode($serializer->serialize($portfolios, 'json', ['groups' => 'portfolioView']), true),
+        'transactionBatches' => json_decode($serializer->serialize($transactionBatches, 'json', ['groups' => 'transactionBatchList']), true),
+        'transactions' => json_decode($serializer->serialize($transactions, 'json', ['groups' => 'transactionDetails']), true),
+        'DailyExchangeRates' => json_decode($serializer->serialize($DailyExchangeRates, 'json'), true),
+        'exchanges' => json_decode($serializer->serialize($exchanges, 'json', ['groups' => 'exchangeDetails']), true),
+        'currencies' => json_decode($serializer->serialize($currencies, 'json', ['groups' => 'userProfile']), true)
+    ];
+        
+        return $this->json($database);
     }
 
     //user registration and login [to do in later versions]

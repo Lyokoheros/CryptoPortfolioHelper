@@ -45,6 +45,8 @@ class ExchangeFixtures extends Fixture
             $exchange = new Exchange();
             $exchange->setName($exchangeData['name']);
             $exchange->setMainUrl($exchangeData['mainUrl']);
+            $objectManager->persist($exchange);
         }
+        
     }
 }
