@@ -10,17 +10,14 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
 class PortfolioFixtures extends Fixture implements DependentFixtureInterface
 {
-    const USERS_PORTFOLIO_DATA = [
-        [
-            'Lyokoheros' => [
-                [
-                    'default' => false,
-                    'name' => 'DCA portfolio',
-                    'batchSize' => 3,
-                    'date' => '2021-07-05'
-                ]
+    const USERS_PORTFOLIO_DATA = [      
+        'Lyokoheros' => [
+            [
+                'default' => false,
+                'name' => 'DCA portfolio',
+                'batchSize' => 3,
+                'date' => '2021-07-05'
             ]
-                        
         ]
     ];
 
@@ -44,9 +41,11 @@ class PortfolioFixtures extends Fixture implements DependentFixtureInterface
     {
         $users = $manager->getRepository(User::class)->findAll();
 
+    
 
         foreach($users as $user)
         {
+            //var_dump($user->getUserName());
             //defualt portfolio
             $portfolio = new Portfolio();
             $portfolio->setUser($user);
@@ -55,9 +54,12 @@ class PortfolioFixtures extends Fixture implements DependentFixtureInterface
             $portfolio->setStartingDate(new \DateTime());
             $portfolio->setName('Main portfolio');
 
+           // echo 'saving defualt portfolio named:';
             $manager->persist($portfolio);
+            //var_dump($portfolio->getName());
             if (isset(self::USERS_PORTFOLIO_DATA[$user->getUserName()]))
             {
+                //echo 'adding more portfolios for user: ' . $user->getUserName() . "\n";
                 foreach(self::USERS_PORTFOLIO_DATA[$user->getUserName()] as $portfolioData)
                 {
                     $portfolio = new Portfolio();
@@ -68,6 +70,8 @@ class PortfolioFixtures extends Fixture implements DependentFixtureInterface
                     
                     $manager->persist($portfolio);
                 }
+                //echo 'saving portfolio named:';
+                //var_dump($portfolio->getName());
             }
         }
     }

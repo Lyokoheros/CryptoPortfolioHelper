@@ -14,50 +14,56 @@ class Transaction
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['portfolioView', 'transactionBatchList'])]
+    #[Groups(['portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'transactions')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['transactionList', 'transactionDetails'])]
     private ?TransactionBatch $transactionBatch = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['transactionDetails'])]
     private ?Exchange $Exchange = null;
     
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['portfolioView', 'transactionBatchList'])]
+    #[Groups(['portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails'])]
 
     private ?Currency $boughtCurrency = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['portfolioView', 'transactionBatchList'])]
+    #[Groups(['portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails'])]
     private ?Currency $soldCurrency = null;
     
     #[ORM\ManyToOne]
+    #[Groups(['transactionDetails'])]
     private ?Currency $feeCurrency = null;
 
     #[ORM\Column]
-    #[Groups(['transactionBatchList'])]
+    #[Groups(['transactionBatchList', 'transactionList', 'transactionDetails'])]
     private ?float $buyValue = null;
 
     #[ORM\Column]
-    #[Groups(['transactionBatchList'])]
+    #[Groups(['transactionBatchList', 'transactionList', 'transactionDetails'])]
     private ?float $sellValue = null;
    
     #[ORM\Column]
+    #[Groups(['transactionDetails'])]
     private ?float $fee = null;
  
     #[ORM\Column]
+    #[Groups(['transactionDetails'])]
     private ?float $marketPrice = null;
 
     #[ORM\Column]
+    #[Groups(['transactionDetails'])]
     private ?float $effectivePrice = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    #[Groups(['transactionBatchList'])]
+    #[Groups(['transactionBatchList', 'transactionList', 'transactionDetails'])]
     private ?\DateTimeInterface $date = null;
 
     public function getId(): ?int

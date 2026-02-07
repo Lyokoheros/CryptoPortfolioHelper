@@ -31,7 +31,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
-        var_dump('asy');
         // $product = new Product();
         // $manager->persist($product);
         $this->loadUsers($manager);
@@ -41,20 +40,14 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
     public function loadUsers(ObjectManager $manager): void
     {
-        var_dump('usery');
         $currencyRepository = $manager->getRepository(Currency::class);
-        echo "repo";
-        var_dump(gettype($currencyRepository->findOneBy(['symbol' => 'PLN'])));//tu się wykrzacza
         
         foreach(self::USERS_DATA as $userData)
         {
-            var_dump(gettype($currencyRepository->findOneBy(['symbol' => $userData['nativeCurrency']])));
-            $user = new user();
+            $user = new User();
             $user->setName($userData['name']);
             $user->setSurname($userData['surname']);
-            var_dump("a-");
             $user->setUserName($userData['userName']);
-            var_dump("-b");
             $user->setEMail($userData['email']);
             $user->setCountry($userData['country']);
             $user->setNativeCurrency(

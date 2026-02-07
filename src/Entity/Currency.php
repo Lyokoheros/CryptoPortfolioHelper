@@ -53,7 +53,6 @@ class Currency
     private ?\DateTimeInterface $lastPriceUpdate = null;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
-    #[ORM\Column(nullable: true)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Currency $pricesCurrency = null;
 

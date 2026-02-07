@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ExchangeRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ExchangeRepository::class)]
 #[ORM\Table(name: 'exchanges')]
@@ -12,18 +13,23 @@ class Exchange
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['exchangeDetails'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $Name = null;
+    #[Groups(['exchangeDetails'])]
+    private ?string $name = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['exchangeDetails'])]
     private ?string $apiAddress = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['exchangeDetails'])]
     private ?string $parserClass = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['exchangeDetails'])]
     private ?string $mainUrl = null;
 
     public function getId(): ?int
@@ -33,12 +39,12 @@ class Exchange
 
     public function getName(): ?string
     {
-        return $this->Name;
+        return $this->name; 
     }
 
-    public function setName(string $Name): static
+    public function setName(string $name): static
     {
-        $this->Name = $Name;
+        $this->name = $name;
 
         return $this;
     }

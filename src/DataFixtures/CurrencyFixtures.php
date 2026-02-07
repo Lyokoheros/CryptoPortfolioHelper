@@ -132,6 +132,7 @@ class CurrencyFixtures extends Fixture
             $currency->setName($currencyData['name']);
             $currency->setSymbol($currencyData['symbol']);
             $currency->setNiches(['fiat']);
+            $currency->setCurrentPrice(1);
             $objectManager->persist($currency);
             $this->fiatCurrencies[$currencyData['symbol']]=$currency;
         }
@@ -139,8 +140,7 @@ class CurrencyFixtures extends Fixture
         foreach($this->fiatCurrencies as $fiatCurrency)
         {
             
-            $fiatCurrency->setPricesCurrency(
-                $this->currencyRepository->findOneBy(['symbol' => $this->fiatCurrencies['PLN']]));
+            $fiatCurrency->setPricesCurrency($this->fiatCurrencies['PLN']);
             $objectManager->persist($fiatCurrency);
         }
     }
