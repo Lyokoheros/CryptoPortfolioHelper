@@ -50,14 +50,6 @@ abstract class EnhancedEntityRepository extends ServiceEntityRepository
             $this->entityManager->flush();
         }
     }
-    /*protected static function getEntityClass(): string
-    {
-        $class = static::class;
-
-        $entityNamespace = substr($class, 0, strrpos($class, 'Repository'));
-
-        return substr($entityNamespace, strrpos($entityNamespace, '\\') + 1);
-    }*/
 
     protected static function getEntityClass(): string
     {

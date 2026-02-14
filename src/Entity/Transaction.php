@@ -6,9 +6,11 @@ use App\Repository\TransactionRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Doctrine\ORM\Events;
 
 #[ORM\Entity(repositoryClass: TransactionRepository::class)]
 #[ORM\Table(name: 'transactions')]
+#[ORM\HasLifecycleCallbacks]
 class Transaction
 {
     #[ORM\Id]
@@ -58,7 +60,7 @@ class Transaction
     #[Groups(['transactionDetails'])]
     private ?float $marketPrice = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     #[Groups(['transactionDetails'])]
     private ?float $effectivePrice = null;
 
@@ -189,6 +191,42 @@ class Transaction
         $this->effectivePrice = $effectivePrice;
 
         return $this;
+    }
+
+    public function calculateEffectivePrice(): float
+    {
+        $effectivePrice = 0.0;
+
+        if($this->getBuyValue() <= 0 || $this->getSellValue() <= 0)
+        {
+            $this->setEffectivePrice($effectivePrice);
+            return $effectivePrice;
+        }
+
+        if ($this->getFeeCurrency() === $this->getSoldCurrency())
+        {            
+            $effectivePrice = $this->getBuyValue()/
+                ($this->getSellValue() + $this->getFee());
+        }
+        elseif (($this->getFeeCurrency() === $this->getBoughtCurrency()))
+        {
+            $effectivePrice = ($this->getBuyValue()-$this->getFee())/
+                $this->getSellValue();
+        }
+        else
+        {
+            $effectivePrice = $this->getBuyValue()/$this->getSellValue();
+        }
+            
+        $this->setEffectivePrice($effectivePrice);
+        return $effectivePrice;
+    }
+
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    public function onPrePersistOrUpdate(): void
+    {
+        $this->calculateEffectivePrice();
     }
 
     public function getDate(): ?\DateTimeInterface

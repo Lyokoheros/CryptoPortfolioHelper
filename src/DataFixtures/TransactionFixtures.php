@@ -242,26 +242,7 @@ class TransactionFixtures extends Fixture implements DependentFixtureInterface
                     );
                     $transaction->setFee($transactionData['fee']);
                     $transaction->setMarketPrice($transactionData['marketPrice'] ?? $transaction->getSellValue()/$transaction->getBuyValue());
-                    if ($transaction->getFeeCurrency() == $transaction->getSoldCurrency())
-                    {
-                        $transaction->setEffectivePrice(
-                            $transaction->getBuyValue()/
-                            ($transaction->getSellValue() + $transaction->getFee())
-                        );
-                    }
-                    elseif (($transaction->getFeeCurrency() == $transaction->getBoughtCurrency()))
-                    {
-                        $transaction->setEffectivePrice(
-                            ($transaction->getBuyValue()-$transaction->getFee())/
-                            $transaction->getSellValue()
-                        );
-                    }
-                    else
-                    {
-                        $transaction->setEffectivePrice(
-                            $transaction->getBuyValue()/$transaction->getSellValue()
-                        );
-                    }
+                    $transaction->calculateEffectivePrice();
 
 //                    var_dump($transaction);
                     $manager->persist($transaction);
