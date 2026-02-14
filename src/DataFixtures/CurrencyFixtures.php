@@ -138,8 +138,11 @@ class CurrencyFixtures extends Fixture
         }
        
         foreach($this->fiatCurrencies as $fiatCurrency)
-        {
-            
+        {   
+            if($fiatCurrency->getSymbol() === 'PLN')
+            {
+                continue;
+            }            
             $fiatCurrency->setPricesCurrency($this->fiatCurrencies['PLN']);
             $objectManager->persist($fiatCurrency);
         }

@@ -14,46 +14,56 @@ class Currency
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['userProfile', 'portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails'])]
+    #[Groups(['userProfile', 'portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails', 'currencyList', 'currencyDetails'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 63)]
-    #[Groups(['userProfile', 'portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails'])]
+    #[Groups(['userProfile', 'portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails', 'currencyList', 'currencyDetails'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 15)]
-    #[Groups(['userProfile', 'portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails'])]
+    #[Groups(['userProfile', 'portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails', 'currencyList', 'currencyDetails'])]
     private ?string $symbol = null;
 
     #[ORM\Column(length: 127, nullable: true)]
+    #[Groups(['currencyDetails'])]
     private ?string $nativeBlockchain = null;
 
     #[ORM\Column(type: Types::ARRAY)]
+    #[Groups(['currencyDetails'])]
     private array $availableNetworks = [];
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['currencyDetails', 'currencyList'])]
     private ?float $allTimeHigh = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['currencyDetails', 'currencyList'])]
     private ?float $allTimeLow = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['currencyDetails'])]
     private ?int $maxSupply = null;
 
     #[ORM\Column(type: Types::ARRAY, nullable: true)]
+    #[Groups(['currencyDetails', 'currencyList'])]
     private ?array $niches = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['currencyDetails'])]
     private ?int $currentSupply = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['currencyDetails', 'currencyList'])]
     private ?float $currentPrice = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Groups(['currencyDetails', 'currencyList'])]
     private ?\DateTimeInterface $lastPriceUpdate = null;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['currencyDetails', 'currencyList'])]
     private ?Currency $pricesCurrency = null;
 
     public function __toString()

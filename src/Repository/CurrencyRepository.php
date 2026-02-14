@@ -15,28 +15,45 @@ class CurrencyRepository extends EnhancedEntityRepository
         parent::__construct($registry);
     }
 
-    //    /**
-    //     * @return Currency[] Returns an array of Currency objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('c.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function addCurrency($currencyData): void
+    {
+        $currency = new Currency();
 
-    //    public function findOneBySomeField($value): ?Currency
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        $this->entityManager->persist($currency);
+
+        $this->editCurrency(
+            $currency->getId(), 
+            $currencyData,
+            $currency
+        );
+    }
+    
+    public function editCurrency($currencyId, $currencyData, ?Currency $currency = null): void
+    {
+        if($currency === null)
+        {
+            $currency = $this->find($currencyId);
+            if(!$currency)
+            {
+                throw new \RuntimeException('Currency not found');
+            }
+        }
+
+        if(isset($currencyData['priceCurrencyId']))
+        {
+            $priceCurrency = $this->find($currencyData['priceCurrencyId']);
+            if(!$priceCurrency)
+            {
+               throw new \RuntimeException('Price currency not found');
+            }
+            $currencyData['pricesCurrency'] = $priceCurrency;
+        }
+        if(isset($currencyData['lastPriceUpdate']))
+        {
+            $currencyData['lastPriceUpdate'] = new \DateTime($currencyData['lastPriceUpdate']);
+        }
+        
+        $this->editEntity($currency, $currencyData);        
+    }
+
 }
