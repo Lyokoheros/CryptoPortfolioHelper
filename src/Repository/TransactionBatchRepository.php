@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Portfolio;
 use App\Entity\TransactionBatch;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -10,9 +11,12 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TransactionBatchRepository extends EnhancedEntityRepository
 {
+    private $portfoliorepo;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry);
+        $this->portfoliorepo = $this->entityManager->getRepository(Portfolio::class);
     }
 
 
@@ -20,17 +24,12 @@ class TransactionBatchRepository extends EnhancedEntityRepository
     {
         $transactionBatch = new TransactionBatch();
 
-        if($transactionBatchData['portfolioId'])
-        {
-            $portfolio = $this->entityManager
-                ->getRepository('App\Entity\Portfolio')
-                ->find($transactionBatchData['portfolioId']);
-            $transactionBatch->setPortfolio($portfolio);
-        }
-        else
+        if(!$transactionBatchData['portfolioId'])
         {
             throw new \RuntimeException('Portfolio (portfolioId) is required to create a Transaction Batch');
         }
+        $transactionBatchData['date'] = $transactionBatchData['date'] ?? '';
+        
 
         $this->entityManager->persist($transactionBatch);
 
@@ -53,11 +52,13 @@ class TransactionBatchRepository extends EnhancedEntityRepository
 
         if($transactionBatchData['portfolioId'])
         {
-            $portfolio = $this->entityManager
-                ->getRepository('App\Entity\Portfolio')
-                ->find($transactionBatchData['portfolioId']);
+            $portfolio = $this->portfoliorepo->find($transactionBatchData['portfolioId']);
             $transactionBatch->setPortfolio($portfolio);
         }
+        if(isset($transactionBatchData['date']))
+        {
+            $transactionBatchData['date'] = new \DateTime($transactionBatchData['date']);
+        }        
 
         $this->editEntity($transactionBatch, $transactionBatchData);
     }

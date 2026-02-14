@@ -26,18 +26,18 @@ final class TransactionBatchController extends AbstractController
         $this->portfolioRepository = $this->entityManager->getRepository(Portfolio::class);
     }
 
-    #[Route('/{portfolioId}', name: 'list_by_portfolio')]
+    #[Route('/{portfolioId}', name: 'list_by_portfolio', methods: ['GET'])]
     public function index(string $portfolioId): JsonResponse
     {
         $portfolio = $this->portfolioRepository->find($portfolioId);
         $batches = $this->repository->findBy(['portfolio' => $portfolio]);
-        return $this->json($batches);
-    }   
+        return $this->json($batches, context: ['groups' => 'transactionBatchList']);
+    }
 
     #[Route('/view/{id<\d+>}', name: 'view', methods: ['GET'])]
     public function getTransactionBatchById(TransactionBatch $transactionBatch): JsonResponse
     {
-        return $this->json($transactionBatch);
+        return $this->json($transactionBatch,  context: ['groups' => 'transactionBatchList']);
     }
 
     #[Route('/edit', name: 'edit', methods: ['POST'])]
@@ -63,9 +63,9 @@ final class TransactionBatchController extends AbstractController
     #[Route('/new', name: 'add', methods: ['POST'])]
     public function addTransactionBatch(Request $request): JsonResponse
     {
-        $userData = json_decode($request->getContent(), true);
-
-        $this->repository->addTransactionBatch($userData);
+        $batchData = json_decode($request->getContent(), true);
+        $this->repository->addTransactionBatch($batchData);
+        $this->entityManager->flush();
        
         return $this->json([
             'message' => 'Transaction Batch added'

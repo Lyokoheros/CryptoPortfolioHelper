@@ -16,17 +16,19 @@ class TransactionBatch
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['portfolioView', 'transactionBatchList'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['portfolioView', 'transactionBatchList'])]
+    #[Groups(['portfolioView', 'transactionBatchList', 'transactionDetails'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-
-    private ?\DateTimeInterface $date = null;
     #[Groups(['portfolioView', 'transactionBatchList'])]
+    private ?\DateTimeInterface $date = null;
+
     #[ORM\Column]
+    #[Groups(['portfolioView', 'transactionBatchList'])]
     private ?int $ordinalNumber = null;
 
     #[ORM\Column(length: 15)]

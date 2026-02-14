@@ -14,15 +14,15 @@ class Currency
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['userProfile'])]
+    #[Groups(['userProfile', 'portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 63)]
-    #[Groups(['userProfile'])]
+    #[Groups(['userProfile', 'portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 15)]
-    #[Groups(['userProfile'])]
+    #[Groups(['userProfile', 'portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails'])]
     private ?string $symbol = null;
 
     #[ORM\Column(length: 127, nullable: true)]
