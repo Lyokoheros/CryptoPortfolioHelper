@@ -119,5 +119,5 @@ final class CurrencyController extends AbstractController
         return $this->json([
             'message' => 'Currency deleted'
         ]);
-    } 
+    }
 }

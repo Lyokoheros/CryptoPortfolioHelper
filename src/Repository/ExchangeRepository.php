@@ -14,28 +14,32 @@ class ExchangeRepository extends EnhancedEntityRepository
     {
         parent::__construct($registry);
     }
-    //    /**
-    //     * @return Exchange[] Returns an array of Exchange objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('e')
-    //            ->andWhere('e.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('e.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
 
-    //    public function findOneBySomeField($value): ?Exchange
-    //    {
-    //        return $this->createQueryBuilder('e')
-    //            ->andWhere('e.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    
+    public function addExchange($exchangeData): void
+    {
+        $exchange = new Exchange();
+
+        $this->entityManager->persist($exchange);
+
+        $this->editExchange(
+            $exchange->getId(), 
+            $exchangeData,
+            $exchange
+        );
+    }
+    
+    public function editExchange($exchangeId, $exchangeData, ?Exchange $exchange = null): void
+    {
+        if($exchange === null)
+        {
+            $exchange = $this->find($exchangeId);
+            if(!$exchange)
+            {
+                throw new \RuntimeException('Exchange not found');
+            }
+        }
+        
+        $this->editEntity($exchange, $exchangeData);        
+    }
 }
