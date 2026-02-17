@@ -22,7 +22,7 @@ class Currency
     private ?string $name = null;
 
     #[ORM\Column(length: 15)]
-    #[Groups(['userProfile', 'portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails', 'currencyList', 'currencyDetails'])]
+    #[Groups(['userProfile', 'portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails', 'currencyList', 'currencyDetails', 'exchangeRate'])]
     private ?string $symbol = null;
 
     #[ORM\Column(length: 127, nullable: true)]
