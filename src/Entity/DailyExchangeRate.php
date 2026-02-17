@@ -5,7 +5,8 @@ namespace App\Entity;
 use App\Repository\DailyExchangeRateRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-
+use Symfony\Component\Serializer\Annotation\Groups;
+ 
 #[ORM\Entity(repositoryClass: DailyExchangeRateRepository::class)]
 #[ORM\Table(name: 'daily_exchange_rates')]
 class DailyExchangeRate
@@ -13,22 +14,28 @@ class DailyExchangeRate
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['exchangeRate'])]
     private ?int $id = null;
     
 
     #[ORM\Column]
-    private ?float $ExchangeRate = null;
+    #[Groups(['exchangeRate'])]
+    private ?float $exchangeRate = null;
+    //quantity of baseCurrency needed to buy 1 unit of exchangedCurrency
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['exchangeRate'])]
     private ?Currency $baseCurrency = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['exchangeRate'])]
     private ?Currency $exchangedCurrency = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $Date = null;
+    #[Groups(['exchangeRate'])]
+    private ?\DateTimeInterface $date = null;
 
     public function getId(): ?int
     {
@@ -61,24 +68,24 @@ class DailyExchangeRate
 
     public function getExchangeRate(): ?float
     {
-        return $this->ExchangeRate;
+        return $this->exchangeRate;
     }
 
-    public function setExchangeRate(float $ExchangeRate): static
+    public function setExchangeRate(float $exchangeRate): static
     {
-        $this->ExchangeRate = $ExchangeRate;
+        $this->exchangeRate = $exchangeRate;
 
         return $this;
     }
 
     public function getDate(): ?\DateTimeInterface
     {
-        return $this->Date;
+        return $this->date;
     }
 
-    public function setDate(\DateTimeInterface $Date): static
+    public function setDate(\DateTimeInterface $date): static
     {
-        $this->Date = $Date;
+        $this->date = $date;
 
         return $this;
     }
