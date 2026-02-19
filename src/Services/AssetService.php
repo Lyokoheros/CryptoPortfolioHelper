@@ -84,27 +84,34 @@ class AssetService
         return $assetExpenses;
     }
     
-    public function getAssetQuantity(Currency $asset, array $portfolios, $optionalCriteria = []): float
+    public function getAssetQuantity(Currency $asset, array $portfolios, array $optionalCriteria = []): float
     {
         return $this->getAssetIncome($asset, $portfolios, $optionalCriteria) 
             - $this->getAssetExpenses($asset, $portfolios, $optionalCriteria);
     }
 
-    public function getBoughtAssets(Portfolio $portfolio): array
+    public function getBoughtAssets(array $portfolios, array $optionalCriteria = []): array
     {
         $assets = [];
-        $transactionBatchess = $this->transactionBatchRepository->findBy(['portfolio' => $portfolio]);
-
-        foreach($transactionBatchess as $transactionBatch)
+        foreach($portfolios as $portfolio)
         {
-            $transactions = $this->transactionRepository->findBy(['transactionBatch' => $transactionBatch]);
+            $transactionBatchess = $this->transactionBatchRepository->findBy(['portfolio' => $portfolio]);
 
-            foreach($transactions as $transaction)
-            {  
-                $boughtAsset = $transaction->getBoughtCurrency();
-                $assets[$boughtAsset->getId()] = $boughtAsset;
+            foreach($transactionBatchess as $transactionBatch)
+            {
+                $transactions = $this->transactionRepository->findBy([
+                    ...['transactionBatch' => $transactionBatch],
+                    ...$optionalCriteria
+                    ]);
+
+                foreach($transactions as $transaction)
+                {  
+                    $boughtAsset = $transaction->getBoughtCurrency();
+                    $assets[$boughtAsset->getId()] = $boughtAsset;
+                }
             }
-        }
+           
+        }        
         return $assets;
     }
 
