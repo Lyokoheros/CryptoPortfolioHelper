@@ -30,32 +30,39 @@ class PortfolioService
         //$this->currencyService = $currencyService;
     }
 
-    public function getAssetValueInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency)
+    public function getAssetValueInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = [])
     {          
-        return $this->assetService->getAssetQuantity($asset, [$portfolio]) * $this->currencyService->getPrice($asset, $baseCurrency);
+        return $this->assetService->getAssetQuantity($asset, [$portfolio], $optionalCriteria) * $this->currencyService->getPrice($asset, $baseCurrency);
     }
 
-    public function getCurrentPortfolioValue(Portfolio $portfolio, Currency $baseCurrency): float
+    public function getCurrentPortfolioValue(Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
     {
         $portfolioValue = 0;
-        $assets = $this->assetService->getBoughtAssets($portfolio);
+        $assets = $this->assetService->getBoughtAssets([$portfolio]);
         foreach($assets as $asset)
         {
-            $portfolioValue += $this->getAssetValueInPortfolio($asset, $portfolio, $baseCurrency);
+            $portfolioValue += $this->getAssetValueInPortfolio(
+                $asset,
+                $portfolio,
+                $baseCurrency,
+                $optionalCriteria);
         }
         return $portfolioValue;
     }
 
-    public function getAssetCostInPortfolioPerCurrency(Currency $asset, Portfolio $portfolio, Currency $baseCurrency): float
+    public function getAssetCostInPortfolioPerCurrency(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
     {
         return $this->assetService->getAssetExpenses(
             $baseCurrency,
             [$portfolio], 
-            ['boughtCurrency' => $asset]
+            [
+                ...['boughtCurrency' => $asset],
+                ...$optionalCriteria
+            ]
         );
     }
 
-    public function getAssetTotalCostInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency): float
+    public function getAssetTotalCostInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
     {
         $purchaseCurrencies = $this->assetService->getSoldAssets($portfolio);
         $totalCost = 0;
@@ -67,7 +74,8 @@ class PortfolioService
                 $assetCost = $this->getAssetCostInPortfolioPerCurrency(
                     $asset, 
                     $portfolio, 
-                    $purchaseCurrency
+                    $purchaseCurrency,
+                    $optionalCriteria
                 ) * $this->currencyService->getPrice(
                     $purchaseCurrency, 
                     $baseCurrency
@@ -78,10 +86,10 @@ class PortfolioService
         return $totalCost;        
     }
 
-    public function getAssetAvgPriceInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency): float
+    public function getAssetAvgPriceInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
     {
-        $totalCost = $this->getAssetTotalCostInPortfolio($asset, $portfolio, $baseCurrency);
-        $assetQuantity = $this->assetService->getAssetIncome($asset, [$portfolio]);
+        $totalCost = $this->getAssetTotalCostInPortfolio($asset, $portfolio, $baseCurrency, $optionalCriteria);
+        $assetQuantity = $this->assetService->getAssetIncome($asset, [$portfolio], $optionalCriteria);
         if($assetQuantity > 0)
         {
             return $totalCost / $assetQuantity;
@@ -89,10 +97,10 @@ class PortfolioService
         return 0;
     }
 
-    public function getSoldOutPercentageInPortfolio(Currency $asset, Portfolio $portfolio): float
+    public function getSoldOutPercentageInPortfolio(Currency $asset, Portfolio $portfolio, array $optionalCriteria = []): float
     {
-        $assetIncome = $this->assetService->getAssetIncome($asset, [$portfolio]);
-        $assetExpenses = $this->assetService->getAssetExpenses($asset, [$portfolio]);
+        $assetIncome = $this->assetService->getAssetIncome($asset, [$portfolio], $optionalCriteria);
+        $assetExpenses = $this->assetService->getAssetExpenses($asset, [$portfolio], $optionalCriteria);
         if($assetIncome > 0)
         {
             return ($assetExpenses / $assetIncome);
@@ -100,7 +108,7 @@ class PortfolioService
         return 0;
     }
 
-    public function getAssetsRealizedIncomeInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency): float
+    public function getAssetsRealizedIncomeInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
     {
         $income = 0;
         $sellCurrencies = $this->assetService->getSoldAssets($portfolio);
@@ -111,11 +119,13 @@ class PortfolioService
                 $income += $this->assetService->getAssetIncome(
                     $sellCurrency, 
                     [$portfolio], 
-                    ['soldCurrency' => $asset]
-                ) * $this->currencyService->getPrice(
-                    $sellCurrency, 
-                    $baseCurrency
-                );
+                    [
+                        ...['soldCurrency' => $asset], 
+                        ...$optionalCriteria
+                ]) * $this->currencyService->getPrice(
+                        $sellCurrency, 
+                        $baseCurrency
+                    );
             }
         }
         return $income;
@@ -159,13 +169,13 @@ class PortfolioService
 
     public function getTopPerformer(Portfolio $portfolio, Currency $baseCurrency, string $parameter = 'valueBalance')
     {
-        $assets = $this->assetService->getBoughtAssets($portfolio);
+        $assets = $this->assetService->getBoughtAssets([$portfolio]);
         $topPerformer = null;
         $topValue = null;
         foreach($assets as $asset)
         {
             if($asset->isInNiches(['stablecoins', 'fiat']))
-            {
+            { 
                 continue;
             }
             $assetStat = $this->getAssetStatInPortfolio($asset, $portfolio, $baseCurrency);
@@ -184,7 +194,7 @@ class PortfolioService
 
     public function getBottomPerformer(Portfolio $portfolio, Currency $baseCurrency, string $parameter = 'valueBalance')
     {
-        $assets = $this->assetService->getBoughtAssets($portfolio);
+        $assets = $this->assetService->getBoughtAssets([$portfolio]);
         $bottomPerformer = null;
         $bottomValue = null;
         foreach($assets as $asset)
