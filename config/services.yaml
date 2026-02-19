@@ -19,6 +19,16 @@ services:
             - '../src/DependencyInjection/'
             #- '../src/Entity/'
             - '../src/Kernel.php'
+    services:
+    App\Parser\:
+        resource: '../src/Parser/*'
+        tags: ['app.exchange_parser']
+        bind:
+            $currencyRepo: '@App\Repository\CurrencyRepository'
+            $exchangeRepo: '@App\Repository\ExchangeRepository'
+            $portfolioRepo: '@App\Repository\PortfolioRepository'
+            $transactionBatchRepo: '@App\Repository\TransactionBatchRepository'
+            $transactionRepo: '@App\Repository\TransactionRepository'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
