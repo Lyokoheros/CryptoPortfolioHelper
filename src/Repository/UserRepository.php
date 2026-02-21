@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\User;
 use App\Entity\Portfolio;
 use App\Entity\Currency;
+use App\Repository\PortfolioRepository;
 use App\Repository\CurrencyRepository;
 use App\Repository\EnhancedEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -14,12 +15,13 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class UserRepository extends EnhancedEntityRepository
 {
-    private CurrencyRepository $currencyRepository;
 
-    public function __construct(ManagerRegistry $registry, CurrencyRepository $currencyRepository)
-    {
+    public function __construct(
+        ManagerRegistry $registry, 
+        private CurrencyRepository $currencyRepository,
+        private PortfolioRepository $portfolioRepository
+    ) {
         parent::__construct($registry);
-        $this->currencyRepository = $currencyRepository;
     }
 
     public function getAllUsers(): array
@@ -72,5 +74,19 @@ class UserRepository extends EnhancedEntityRepository
     {
         $this->remove($this->find($id));
         return ['message' => 'success'];
+    }
+
+    public function findUsersDefaultPortfolio(User $user): ?Portfolio
+    {
+        $userPortfolios = $this->portfolioRepository->findBy(['user' => $user]);
+
+        foreach($userPortfolios as $portfolio)
+        {
+            if($portfolio->isDefault())
+            {
+                return $portfolio;
+            }
+        }
+        return null;
     }
 }

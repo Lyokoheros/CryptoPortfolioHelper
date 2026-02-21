@@ -31,6 +31,10 @@ class Portfolio
     #[Groups(['portfolioList', 'portfolioView'])]
     private ?int $batchSize = null;
 
+    #[ORM\Column(options: ['default' => 'regular'])]
+    #[Groups(['portfolioList', 'portfolioView'])]
+    private string $defualtBatchType = 'regular';
+
     #[ORM\ManyToOne(inversedBy: 'portfolios')]
     #[ORM\JoinColumn(nullable: false)]
     #[Ignore]
@@ -95,6 +99,18 @@ class Portfolio
     public function setBatchSize(int $batchSize): static
     {
         $this->batchSize = $batchSize ?? 1;
+
+        return $this;
+    }
+
+    public function getDefualtBatchType(): ?string
+    {
+        return $this->defualtBatchType;
+    }
+
+    public function setDefualtBatchType(string $batchType): static
+    {
+        $this->defualtBatchType = $batchType;
 
         return $this;
     }

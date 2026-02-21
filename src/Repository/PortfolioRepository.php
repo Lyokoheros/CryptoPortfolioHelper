@@ -19,12 +19,13 @@ class PortfolioRepository extends EnhancedEntityRepository
     {
         
         $portfolio = new Portfolio();
-        //to do: check for required fields (user_id, portfolio_name) 
-        //and set defaults for optional fields:
-        //$portfolioData['batchSize'] = 1;
-        //$portfolioData['isDefault'] = false;
-        //$portfolioData['totalPortfolioValue'] = 0.0;
-        //starting date is set in constructor to current date        
+        //to do: check for required fields (user_id, portfolio_name)                
+        $portfolioData['batchSize'] ??= 1;
+        $portfolioData['isDefault'] ??= false;
+        $portfolioData['totalPortfolioValue'] ??= 0.0;
+        //starting date is set in constructor to current date 
+        
+        
         $this->editEntity($portfolio, $portfolioData);
 
         return $portfolio;
@@ -35,4 +36,12 @@ class PortfolioRepository extends EnhancedEntityRepository
         $this->removeEntity($portfolio);
     }
 
+    public function findOrCreatePortfolio(string $portfolioName, array $portfolioData): Portfolio
+    {
+        return $this->findOneBy(['name' => $portfolioName]) ?? $this->addPortfolio([
+            ...['name' => $portfolioName],
+            ...$portfolioData
+        ]);
+    }
+    
 }
