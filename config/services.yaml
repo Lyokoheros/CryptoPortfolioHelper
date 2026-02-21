@@ -24,6 +24,7 @@ services:
         resource: '../src/Parser/*'
         tags: ['app.exchange_parser']
         bind:
+            $userRepo: '@App\Repository\UserRepository'
             $currencyRepo: '@App\Repository\CurrencyRepository'
             $exchangeRepo: '@App\Repository\ExchangeRepository'
             $portfolioRepo: '@App\Repository\PortfolioRepository'
