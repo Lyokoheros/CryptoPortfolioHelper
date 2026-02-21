@@ -19,7 +19,6 @@ services:
             - '../src/DependencyInjection/'
             #- '../src/Entity/'
             - '../src/Kernel.php'
-    services:
     App\Parser\:
         resource: '../src/Parser/*'
         tags: ['app.exchange_parser']

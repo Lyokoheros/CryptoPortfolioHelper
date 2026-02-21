@@ -5,7 +5,7 @@ namespace App\Controller;
 
 use App\Entity\Exchange;
 use App\Repository\UserRepository;
-use App\Services\ExchangesService;
+use App\Service\ExchangeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,7 +22,7 @@ final class ExchangeController extends AbstractController
         //private SerializerInterface $serializer,
         private EntityManagerInterface $entityManager,
         private UserRepository $userRepo,
-        private ExchangesService $exchangeService
+        private ExchangeService $exchangeService
     ) {
         $this->repository = $this->entityManager->getRepository(Exchange::class);
     }
