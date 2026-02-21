@@ -3,18 +3,9 @@
 namespace App\Service;
 
 use App\Entity\Currency;
-use App\Entity\Portfolio;
-use App\Entity\Transaction;
-use App\Entity\TransactionBatch;
-use Symfony\Bridge\Doctrine\ManagerRegistry;
 
-class AssetStructureService
+class StructureService
 {
-    private $currencyRepo;
-    private $portfolioRepo;
-    private $transactionBatchRepository;
-    private $transactionRepository;
-
     private $avaibleParameterFunctions = [
         'getAssetValueInPortfolio',
         'getAssetCostInPortfolioPerCurrency',
@@ -23,18 +14,9 @@ class AssetStructureService
     ];
 
     public function __construct(
-        ManagerRegistry $registry, 
-        private CurrencyService $currencyService,
         private AssetService $assetService,
         private PortfolioService $portfolioService
-    ) {
-        $this->currencyRepo = $registry->getManager()->getRepository(Currency::class);
-        $this->portfolioRepo = $registry->getManager()->getRepository(Portfolio::class);
-        $this->transactionBatchRepository = $registry->getManager()->getRepository(TransactionBatch::class);
-        $this->transactionRepository = $registry->getManager()->getRepository(Transaction::class);
-        $this->avaibleParameterFunctions = array_flip($this->avaibleParameterFunctions);
-        //$this->currencyService = $currencyService;
-    }
+    ) {}
 
     public function getAssetStructurePerParameter(array $portfolios, Currency $baseCurrency, string $functionName, $optionalCriteria = []): array
     {//to do - generalizacja (dowolna funkcja zamiast getAssetValueInPortfolio) + kryteria
@@ -104,9 +86,5 @@ class AssetStructureService
             $optionalCriteria
         );
     }
-
-        
-        
-
 
 }
