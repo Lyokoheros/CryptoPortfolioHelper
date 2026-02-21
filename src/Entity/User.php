@@ -16,6 +16,7 @@ class User
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['userProfile'])]
     private int $id;
 
     #[ORM\Column(length: 255)]

@@ -29,7 +29,7 @@ class TransactionRepository extends EnhancedEntityRepository
     {
         $transaction = new Transaction();
 
-        if(!$transactionData['batchId'])
+        if(!isset($transactionData['batchId']) && !isset($transactionData['transactionBatch']))
         {
             throw new \RuntimeException('Transaction must be part of a batch (batchId missing)');
         }
@@ -69,7 +69,7 @@ class TransactionRepository extends EnhancedEntityRepository
             $transaction = $this->find($id);
         }
 
-        if($transactionData['batchId'])
+        if(isset($transactionData['batchId']))
         {
             $batch = $this->batchRepository->find($transactionData['batchId']);
             $transaction->setTransactionBatch($batch);

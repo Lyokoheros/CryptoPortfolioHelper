@@ -28,7 +28,7 @@ abstract class AbstractExchangeParser
     ) {
     }
 
-    public abstract function parseTransactionCSVData($data, User $user): void;
+    public abstract function parseTransactionsCSVData($data, User $user): void;
 
     protected abstract function getExchange(): Exchange;
 
@@ -64,7 +64,7 @@ abstract class AbstractExchangeParser
 
     protected function splitValueAndCurrency(string $value): array
     {
-        preg_match('/^(\d+\.?\d*)([A-Za-z] [A-Za-z0-9]*)$/', $value, $matches);
+        preg_match('/^(\d+\.?\d*)([A-Za-z][A-Za-z0-9]*)$/', $value, $matches);
         
         if (empty($matches)) {
             throw new \InvalidArgumentException("Invalid value format: '$value'");

@@ -20,13 +20,13 @@ class TransactionBatchRepository extends EnhancedEntityRepository
     }
 
 
-    public function addTransactionBatch($transactionBatchData): void
+    public function addTransactionBatch($transactionBatchData): TransactionBatch
     {
         $transactionBatch = new TransactionBatch();
 
-        if(!$transactionBatchData['portfolioId'])
+        if(!isset($transactionBatchData['portfolioId']) && !isset($transactionBatchData['portfolio']))
         {
-            throw new \RuntimeException('Portfolio (portfolioId) is required to create a Transaction Batch');
+            throw new \RuntimeException('Portfolio (or portfolioId) is required to create a Transaction Batch');
         }
         $transactionBatchData['date'] = $transactionBatchData['date'] ?? '';
         
@@ -38,6 +38,7 @@ class TransactionBatchRepository extends EnhancedEntityRepository
             $transactionBatchData,
             $transactionBatch
         );
+        return $transactionBatch;
     }   
 
 
@@ -50,7 +51,7 @@ class TransactionBatchRepository extends EnhancedEntityRepository
             $transactionBatch = $this->find($id);
         }
 
-        if($transactionBatchData['portfolioId'])
+        if(isset($transactionBatchData['portfolioId']))
         {
             $portfolio = $this->portfoliorepo->find($transactionBatchData['portfolioId']);
             $transactionBatch->setPortfolio($portfolio);

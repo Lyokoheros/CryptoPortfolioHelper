@@ -39,6 +39,15 @@ class ExchangeRepository extends EnhancedEntityRepository
                 throw new \RuntimeException('Exchange not found');
             }
         }
+        if(isset($exchangeData['parserClass']))
+        {
+            $parserClass = $exchangeData['parserClass'];
+    
+            if (!str_starts_with($parserClass, 'App\\Parser\\')) 
+            {
+                $exchangeData['parserClass'] = 'App\\Parser\\' . $parserClass;
+            }
+        }
         
         $this->editEntity($exchange, $exchangeData);        
     }
