@@ -65,4 +65,22 @@ class CurrencyRepository extends EnhancedEntityRepository
         ]);
     }
 
+    public function findByNiche(string $niche): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where(':niche MEMBER OF c.niches')
+            ->setParameter('niche', $niche)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findFiatCurrencies(): array
+    {
+        return $this->findByNiche('fiat');
+    }
+
+    public function findStableCoins(): array
+    {
+        return $this->findByNiche('stablecoin');
+    }
 }
