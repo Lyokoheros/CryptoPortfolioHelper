@@ -111,13 +111,24 @@ final class ExchangeController extends AbstractController
         ]);
     }
 
-    #[Route('/importcsvData', name: 'csv_data_import', methods: ['POST'])]
+    #[Route('/import-csv-data', name: 'csv_data_import', methods: ['POST'])]
     public function importDataFromCSV(Request $request): JsonResponse
     {
-        $requestData = json_decode($request->getContent(), true);
-        $csvContent = $request->files->get('file')->getContent();
-        $user = $this->userRepo->find($requestData['userID']);
-        $exchangeName = $requestData['exchange'];
+        $exchangeName = $request->request->get('exchange');
+        $userId = (int) $request->request->get('userID');
+        $file = $request->files->get('file');
+
+        if (!$file)
+        {
+            return $this->json(['error' => 'No file provided'], 400);
+        }
+        
+        $user = $this->userRepo->find($userId);
+        if (!$user) {
+            return $this->json(['error' => 'User not found'], 404);
+        }
+        
+        $csvContent = $file->getContent();
 
         $this->exchangeService->addCSVDataFromExchage(
             $exchangeName, 
