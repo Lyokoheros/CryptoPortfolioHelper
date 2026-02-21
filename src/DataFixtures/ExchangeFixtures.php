@@ -11,19 +11,23 @@ class ExchangeFixtures extends Fixture
     const EXCHANGES_DATA = [
         [
             'name' => 'Binnance',
-            'mainUrl' => 'https://www.binance.com'
+            'mainUrl' => 'https://www.binance.com',
+            'parserClass' => 'App\\Parser\\BinnanceParser'
         ],
         [
             'name' => 'Coinbase',
-            'mainUrl' => 'https://www.coinbase.com'
+            'mainUrl' => 'https://www.coinbase.com',
+            'parserClass' => ''
         ],
         [
             'name' => 'KuCoin',
-            'mainUrl' => 'https://www.kucoin.com/'
+            'mainUrl' => 'https://www.kucoin.com/',
+            'parserClass' => ''
         ],
         [
             'name' => 'SwissBorg',
-            'mainUrl' => null
+            'mainUrl' => null,
+            'parserClass' => ''
         ]
 
 
@@ -45,6 +49,7 @@ class ExchangeFixtures extends Fixture
             $exchange = new Exchange();
             $exchange->setName($exchangeData['name']);
             $exchange->setMainUrl($exchangeData['mainUrl']);
+            $exchange->setParserClass($exchangeData['parserClass']);
             $objectManager->persist($exchange);
         }
         
