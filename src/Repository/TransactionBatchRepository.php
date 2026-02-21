@@ -62,29 +62,12 @@ class TransactionBatchRepository extends EnhancedEntityRepository
 
         $this->editEntity($transactionBatch, $transactionBatchData);
     }
-
-    //    /**
-    //     * @return TransactionBatch[] Returns an array of TransactionBatch objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('p.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?TransactionBatch
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    
+    public function findOrCreateBatch(string $batchName, array $batchData): TransactionBatch
+    {
+        return $this->findOneBy(['name' => $batchName]) ?? $this->addTransactionBatch([
+            ...['name' => $batchName],
+            ...$batchData
+        ]);
+    }
 }

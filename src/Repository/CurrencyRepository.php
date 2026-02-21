@@ -15,7 +15,7 @@ class CurrencyRepository extends EnhancedEntityRepository
         parent::__construct($registry);
     }
 
-    public function addCurrency($currencyData): void
+    public function addCurrency($currencyData): Currency
     {
         $currency = new Currency();
 
@@ -26,6 +26,7 @@ class CurrencyRepository extends EnhancedEntityRepository
             $currencyData,
             $currency
         );
+        return $currency;
     }
     
     public function editCurrency($currencyId, $currencyData, ?Currency $currency = null): void
@@ -54,6 +55,14 @@ class CurrencyRepository extends EnhancedEntityRepository
         }
         
         $this->editEntity($currency, $currencyData);        
+    }
+
+    public function findOrCreateCurrency($symbol, $currencyData): Currency
+    {
+        return $this->findOneBy(['symbol' => $symbol]) ?? $this->addCurrency([
+            ...['symbol' => $symbol],
+            ...$currencyData
+        ]);
     }
 
 }
