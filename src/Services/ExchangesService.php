@@ -20,7 +20,7 @@ class ExchangesService
         private readonly ContainerInterface $container
     ) {}
 
-    public function addCSVDataFromExchage($exchangeName, User $user, string $csvData)
+    public function addCSVDataFromExchage(string $exchangeName, User $user, string $csvData)
     {
         $exchange = $this->exchangeRepo->findOneBy(['name' => $exchangeName]);
         
@@ -39,7 +39,5 @@ class ExchangesService
         $parser = $this->container->get($parserClass);
         $parser->parseTransactionsCSVData($csvData, $user);         
     }
-
-
 
 }
