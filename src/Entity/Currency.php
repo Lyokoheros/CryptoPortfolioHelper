@@ -209,6 +209,20 @@ class Currency
         return $this;
     }
 
+    public function isInNiches(array $niches): bool
+    {
+        $niches = array_flip($niches);
+        $currencyNiches = $this->getNiches() ?? [];
+        
+        foreach ($currencyNiches as $niche) {
+            if (isset($niches[$niche])) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
     public function getPricesCurrency(): ?Currency
     {
         return $this->pricesCurrency;
