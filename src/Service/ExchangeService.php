@@ -9,16 +9,19 @@ use App\Entity\Transaction;
 use App\Entity\TransactionBatch;
 use App\Entity\User;
 use App\Repository\ExchangeRepository;
-use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 
 class ExchangeService
 {
-
     public function __construct(
         private ExchangeRepository $exchangeRepo, 
-        private readonly ContainerInterface $container
+        private ServiceLocator $parserLocator
     ) {}
+
+    private function getParser(string $parserClass)
+    {
+        return $this->parserLocator->get($parserClass);
+    }
 
     public function addCSVDataFromExchage(string $exchangeName, User $user, string $csvData)
     {
@@ -31,12 +34,15 @@ class ExchangeService
             throw new \InvalidArgumentException("Parser class '$parserClass' does not exist");
         }
     
-        if (!$this->container->has($parserClass))
+        try
         {
-            throw new \InvalidArgumentException("Parser class '$parserClass' is not registered as a service");
+            $parser = $this->getParser($parserClass);
+        } 
+        catch (\Psr\Container\NotFoundExceptionInterface $e)
+        {
+            throw new \InvalidArgumentException("Parser class '$parserClass' is not registered as a service", 0, $e);
         }
     
-        $parser = $this->container->get($parserClass);
         $parser->parseTransactionsCSVData($csvData, $user);         
     }
 
