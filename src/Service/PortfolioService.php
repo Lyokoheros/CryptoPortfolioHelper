@@ -4,31 +4,14 @@ namespace App\Service;
 
 use App\Entity\Currency;
 use App\Entity\Portfolio;
-use App\Entity\Transaction;
-use App\Entity\TransactionBatch;
-use App\Entity\User;
 use App\Service\PricesService;
-use Symfony\Bridge\Doctrine\ManagerRegistry;
 
 class PortfolioService
 {
-    private $currencyRepo;
-    private $portfolioRepo;
-    private $transactionBatchRepository;
-    private $transactionRepository;
-
-
     public function __construct(
-        ManagerRegistry $registry, 
         private CurrencyService $currencyService,
         private AssetService $assetService
-    ) {
-        $this->currencyRepo = $registry->getManager()->getRepository(Currency::class);
-        $this->portfolioRepo = $registry->getManager()->getRepository(Portfolio::class);
-        $this->transactionBatchRepository = $registry->getManager()->getRepository(TransactionBatch::class);
-        $this->transactionRepository = $registry->getManager()->getRepository(Transaction::class);
-        //$this->currencyService = $currencyService;
-    }
+    ) {}
 
     public function getAssetValueInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = [])
     {          

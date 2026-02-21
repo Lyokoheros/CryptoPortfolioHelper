@@ -4,20 +4,12 @@ namespace App\Service;
 
 use App\Entity\Currency;
 use App\Repository\CurrencyRepository;
-//use App\Entity\DailyExchangeRate;
-use Symfony\Bridge\Doctrine\ManagerRegistry;
 
 class CurrencyService
-{
-    private CurrencyRepository $currencyRepo;
-    private $dailyExchangeRateRepo;
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        $this->currencyRepo = $registry->getManager()->getRepository(Currency::class);
-        //$this->dailyExchangeRateRepo = $registry->getManager()->getRepository(DailyExchangeRate::class);
-
-    }
+{   
+    public function __construct(
+        private CurrencyRepository $currencyRepo
+    ) {}
 
     public function updatePrice(Currency $currency): void
     {
