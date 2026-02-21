@@ -7,14 +7,14 @@ use App\Entity\Transaction;
 use App\Entity\User;
 use DateTime;
 
-class BinanceParser extends AbstractExchangeParser
+class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInterface
 {
     protected function getExchange(): Exchange
     {
-        return $this->exchangeRepo->findoneBy(['name' => 'binnance']);
+        return $this->exchangeRepo->findoneBy(['name' => 'Binnance']);
     }
 
-    public function parseTransactionCSVData($csvData, User $user): void
+    public function parseTransactionsCSVData($csvData, User $user): void
     {
         $exchange = $this->getExchange();
         $transactionData = $this->parseCSV($csvData);
@@ -26,12 +26,12 @@ class BinanceParser extends AbstractExchangeParser
         foreach($transactionData as $transactionData)
         {
             
-            if(isset($transaction['portfolio']))
+            if(isset($transactionData['portfolio']))
             {
                 $portfolio = $this->portfolioRepo->findOrCreatePortfolio(
                     $transactionData['portfolio'],
                     ['user' => $user]
-                );       
+                );
             }
             $portfolio ??= $defaultPortfolio ?? $this->portfolioRepo->addPortfolio([
                 'name' => 'Default Portfolio',
@@ -43,13 +43,14 @@ class BinanceParser extends AbstractExchangeParser
 
             
             $batch = $this->transactionBatchRepo->findOrCreateBatch(
-                $transactionData['batch'] 
-                    ?? ($defualtBatchName . $portfolioOrdinalNumbers[$portfolio->getName()]),
+                $transactionData['batch']
+                    ?: ($defualtBatchName . $portfolioOrdinalNumbers[$portfolio->getName()]),
                 [
                     'type' => $portfolio->getDefualtBatchType(),
                     'finished' => false,
                     'portfolio' => $portfolio,
-                    'date' => $transactionData['Date(UTC)'] ?? null
+                    'date' => $transactionData['Date(UTC)'] ?? null,
+                    'ordinalNumber' => $portfolioOrdinalNumbers[$portfolio->getName()]
                 ]
             );
             $portfolioOrdinalNumbers[$portfolio->getName()]++;
@@ -58,7 +59,7 @@ class BinanceParser extends AbstractExchangeParser
             $amount = $this->splitValueAndCurrency($transactionData['Amount']);
             $fee = $this->splitValueAndCurrency($transactionData['Fee']);
 
-            if($transactionData['side'] == 'BUY')
+            if($transactionData['Side'] == 'BUY')
             {
 
                 $boughtCurrency = $this->currencyRepo->findOrCreateCurrency($executed['currency'],
@@ -78,7 +79,7 @@ class BinanceParser extends AbstractExchangeParser
                 $sellValue = $amount['value'];
 
             }
-            else if($transactionData['side'] == 'SELL')
+            else if($transactionData['Side'] == 'SELL')
             {
                 $boughtCurrency = $this->currencyRepo->findOrCreateCurrency($amount['currency'],
                     [
@@ -98,7 +99,7 @@ class BinanceParser extends AbstractExchangeParser
                 
             }
             $feeCurrency = $this->currencyRepo->findOrCreateCurrency(
-                $transactionData['FeeCurrency'], 
+                $fee['currency'], 
                 ['name' => $fee['currency']]
             );
            
@@ -118,7 +119,7 @@ class BinanceParser extends AbstractExchangeParser
             ]);
 
             $transactionCountInBatch = count($this->transactionRepo
-                ->findBy(['batch' => $batch]));
+                ->findBy(['transactionBatch' => $batch]));
                 
             if($transactionCountInBatch == $portfolio->getBatchSize())
             {
