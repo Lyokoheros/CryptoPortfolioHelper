@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Service;
 
 use App\Entity\Currency;
 use App\Entity\Exchange;
@@ -12,7 +12,7 @@ use App\Repository\ExchangeRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class ExchangesService
+class ExchangeService
 {
 
     public function __construct(
