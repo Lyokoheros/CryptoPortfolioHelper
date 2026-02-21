@@ -13,11 +13,13 @@ use App\Repository\ExchangeRepository;
 use App\Repository\PortfolioRepository;
 use App\Repository\TransactionBatchRepository;
 use App\Repository\TransactionRepository;
+use App\Repository\UserRepository;
 use League\Csv\Reader;
 
 abstract class AbstractExchangeParser
 {
     public function __construct(
+        protected UserRepository $userRepo,
         protected ExchangeRepository $exchangeRepo,
         protected PortfolioRepository $portfolioRepo,
         protected TransactionBatchRepository $transactionBatchRepo,
@@ -27,6 +29,8 @@ abstract class AbstractExchangeParser
     }
 
     public abstract function parseTransactionCSVData($data, User $user): void;
+
+    protected abstract function getExchange(): Exchange;
 
     protected function parseCSV(string $csvContent): array
     {
@@ -56,5 +60,19 @@ abstract class AbstractExchangeParser
         }
         
         return $data;
+    }
+
+    protected function splitValueAndCurrency(string $value): array
+    {
+        preg_match('/^(\d+\.?\d*)([A-Za-z] [A-Za-z0-9]*)$/', $value, $matches);
+        
+        if (empty($matches)) {
+            throw new \InvalidArgumentException("Invalid value format: '$value'");
+        }
+        
+        return [
+            'value' => $matches[1],
+            'currency' => $matches[2]
+        ];
     }
 }
