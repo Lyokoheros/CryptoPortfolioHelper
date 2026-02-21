@@ -4,6 +4,8 @@ namespace App\Controller;
 
 
 use App\Entity\Exchange;
+use App\Repository\UserRepository;
+use App\Services\ExchangesService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +20,9 @@ final class ExchangeController extends AbstractController
 
     public function __construct(
         //private SerializerInterface $serializer,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private UserRepository $userRepo,
+        private ExchangesService $exchangeService
     ) {
         $this->repository = $this->entityManager->getRepository(Exchange::class);
     }
@@ -105,5 +109,24 @@ final class ExchangeController extends AbstractController
         return $this->json([
             'message' => 'Exchange deleted'
         ]);
+    }
+
+    #[Route('/importcsvData', name: 'csv_data_import', methods: ['POST'])]
+    public function importDataFromCSV(Request $request): JsonResponse
+    {
+        $requestData = json_decode($request->getContent(), true);
+        $csvContent = $request->files->get('file')->getContent();
+        $user = $this->userRepo->find($requestData['userID']);
+        $exchangeName = $requestData['exchange'];
+
+        $this->exchangeService->addCSVDataFromExchage(
+            $exchangeName, 
+            $user, 
+            $csvContent
+        );
+
+        return $this->json([
+                'message' => 'Data added succesfully'
+            ]);
     }
 }
