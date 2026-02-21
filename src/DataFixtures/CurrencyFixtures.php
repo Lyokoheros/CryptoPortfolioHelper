@@ -95,6 +95,30 @@ class CurrencyFixtures extends Fixture
             'currentPrice' => 588.88,
             'currentSupply' => 153856150,
             'maxSupply' => 200000000
+        ],
+        [
+            'name' => 'binance USD',
+            'symbol' => 'BUSD',
+            'nativeBlockchain' => 'Binnance Smart Chain(BSC)',
+            'availableNetworks' => ['Binnance Smart Chain(BSC)'],
+            'niches' => ['stablecoins'],
+            'allTimeHigh' => 1,
+            'allTimeLow' => 1,
+            'currentPrice' => 1,
+            'currentSupply' => 1000000000,
+            'maxSupply' => null
+        ],
+        [
+            'name' => 'USD Coin',
+            'symbol' => 'USDC',
+            'nativeBlockchain' => '?',
+            'availableNetworks' => ['Ethereum', 'EOS', 'Tron', 'Solana', 'Optimism'],
+            'niches' => ['stablecoins'],
+            'allTimeHigh' => 1,
+            'allTimeLow' => 1,
+            'currentPrice' => 1,
+            'currentSupply' => 1000000000,
+            'maxSupply' => null
         ]/*,
         [
             'name' => '',
