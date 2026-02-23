@@ -4,17 +4,23 @@ namespace App\Service;
 
 use App\Entity\Currency;
 use App\Repository\CurrencyRepository;
+use App\Service\CryptoApi\CryptoApiProviderInterface;
 
 class CurrencyService
 {   
     public function __construct(
-        private CurrencyRepository $currencyRepo
+        private CurrencyRepository $currencyRepo,
+        private CryptoApiProviderInterface $cryptoApi
+
     ) {}
 
     public function updatePrice(Currency $currency): void
     {
-        //to implement(call external API, update price in database)
+        $price = $this->cryptoApi->getCryptoPrice($currency->getSymbol());
+
+        $currency->setCurrentPrice($price);
         $currency->setLastPriceUpdate(new \DateTime());
+        
         $this->currencyRepo->entityManager->persist($currency);
         $this->currencyRepo->entityManager->flush();
     }
