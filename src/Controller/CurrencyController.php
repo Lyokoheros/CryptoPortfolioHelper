@@ -123,6 +123,17 @@ final class CurrencyController extends AbstractController
         ]);
     }
 
+    #[Route('/update/coingecko-ids', name: 'update_coingecko_ids', methods: ['GET'])]
+    public function UpdateCoinGeckoIDs(): JsonResponse
+    {
+        $updates = $this->service->updateCoinGeckoIds();      
+
+        return $this->json([
+            'message' => 'Currency CoinGeckoIDs updated',
+            'new IDs' => $updates
+        ]);
+    }
+
     #[Route('/update/{symbol<[A-Za-z]+>}', name: 'update_by_symbol', methods: ['GET'])]
     public function UpdateCurrencyBySymbol(string $symbol): JsonResponse
     {
