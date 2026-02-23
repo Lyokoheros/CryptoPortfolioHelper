@@ -66,6 +66,10 @@ class Currency
     #[Groups(['currencyDetails', 'currencyList'])]
     private ?Currency $pricesCurrency = null;
 
+    #[ORM\Column(length: 63, nullable: true)]
+    #[Groups(['currencyDetails'])]
+    private ?string $coinGeckoID = null;
+
     public function __toString()
     {
         return $this->symbol;
@@ -231,6 +235,18 @@ class Currency
     public function setPricesCurrency(?Currency $pricesCurrency): static
     {
         $this->pricesCurrency = $pricesCurrency;
+
+        return $this;
+    }
+
+    public function getCoinGeckoID(): ?string
+    {
+        return $this->coinGeckoID;
+    }
+
+    public function setCoinGeckoID(?string $coinGeckoID): static
+    {
+        $this->coinGeckoID = $coinGeckoID;
 
         return $this;
     }

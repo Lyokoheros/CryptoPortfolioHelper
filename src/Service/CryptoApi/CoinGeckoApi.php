@@ -37,7 +37,7 @@ class CoinGeckoApi implements CryptoApiProviderInterface
     }
     
 
-    public function findAllCoinsBySymbol(string $symbol): array
+    public function getApiCoinsList(): array
     {
         $response = $this->httpClient->request('GET', self::BASE_URL . '/coins/list', [
             'headers' => ['x-cg-pro-api-key' => $this->apiKey]

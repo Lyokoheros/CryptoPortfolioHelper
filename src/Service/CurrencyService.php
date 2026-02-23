@@ -4,30 +4,43 @@ namespace App\Service;
 
 use App\Entity\Currency;
 use App\Repository\CurrencyRepository;
+use App\Service\CryptoApi\CoinGeckoApi;
 use App\Service\CryptoApi\CryptoApiProviderInterface;
 
 class CurrencyService
 {   
     public function __construct(
         private CurrencyRepository $currencyRepo,
-        private CryptoApiProviderInterface $cryptoApi
-
+        private CryptoApiProviderInterface $cryptoApi,
+        private CoinGeckoApi $coinGecko
     ) {}
 
     public function updatePrice(Currency $currency): float
     {
-        $now = strtotime(date("Y-m-d H:i:s"));
-        $limit = date("Y-m-d H:i:s", $now - (15 * 60));
-        if($currency->getLastPriceUpdate() <  $limit)
+        $now = new \DateTime();
+        
+        if ($this->shouldUpdatePrice($currency)) 
         {
             $price = $this->cryptoApi->getCryptoPrice($currency);
-            $currency->setLastPriceUpdate(new \DateTime());
+            $currency->setLastPriceUpdate($now);
+        }
+        else 
+        {
+            $price = $currency->getCurrentPrice();
         }
         $currency->setCurrentPrice($price);
         
 
         $this->currencyRepo->saveEntity($currency);
         return $price;
+    }
+
+    private function shouldUpdatePrice(Currency $currency): bool
+    {
+        $lastUpdate = $currency->getLastPriceUpdate();
+        $tenMinutesAgo = (new \DateTime())->modify('-10 minutes');
+        
+        return $lastUpdate === null || $lastUpdate < $tenMinutesAgo;
     }
 
     public function translateStableCoinToFiat(Currency $stableCoin): ?Currency
@@ -58,6 +71,35 @@ class CurrencyService
             }
         }
         return $stableCoins;            
+    }
+
+    public function updateCoinGeckoIds(): int
+    {
+        $allCurrencies = $this->currencyRepo->findAll();
+        $coinGeckoData = null;
+        $updates = 0;
+
+        foreach($allCurrencies as $currency)
+        {
+            if($currency->getCoinGeckoID() === null)            
+            {
+                if($coinGeckoData === null)
+                {
+                    $coinGeckoData = $this->coinGecko->getApiCoinsList();
+                }
+            }
+            $symbol = strtolower($currency->getSymbol());
+            foreach($coinGeckoData as $coinData)
+            {
+                if($coinData['symbol'] == $symbol)
+                {
+                    $currency->setCoinGeckoID($coinData['id']);
+                    $this->currencyRepo->saveEntity($currency);
+                    $updates++;
+                }
+            }
+        }
+        return $updates;
     }
 
     public function getPrice(Currency $asset, Currency $baseCurrency): ?float
