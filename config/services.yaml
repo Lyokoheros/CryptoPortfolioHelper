@@ -32,12 +32,11 @@ services:
     App\Service\ExchangeService:
         arguments:
             $parserLocator: !tagged_locator 'app.exchange_parser'
-    #parser_locator:
-    #    class: Symfony\Component\DependencyInjection\ServiceLocator
-    #    arguments:
-    #        - !tagged_locator 'app.exchange_parser'
-    #    public: true
-    #Symfony\Component\DependencyInjection\ServiceLocator: '@parser_locator'
 
+
+
+    App\Service\CryptoApi\CryptoApiProviderInterface:
+        class: App\Service\CryptoApi\CoinGeckoApi
+    
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

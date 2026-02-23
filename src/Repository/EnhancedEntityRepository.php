@@ -23,6 +23,12 @@ abstract class EnhancedEntityRepository extends ServiceEntityRepository
 
     }
 
+    public function saveEntity(object $entity): void
+    {
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
+    }
+
     public function editEntity(object $entity, array $data): array
     {
         
@@ -36,8 +42,7 @@ abstract class EnhancedEntityRepository extends ServiceEntityRepository
             }
         }
 
-        $this->entityManager->persist($entity);
-        $this->entityManager->flush();
+        $this->saveEntity($entity);
 
         return ['message' => 'success'];
     }
