@@ -14,15 +14,20 @@ class CurrencyService
 
     ) {}
 
-    public function updatePrice(Currency $currency): void
+    public function updatePrice(Currency $currency): float
     {
-        $price = $this->cryptoApi->getCryptoPrice($currency->getSymbol());
-
+        $now = strtotime(date("Y-m-d H:i:s"));
+        $limit = date("Y-m-d H:i:s", $now - (15 * 60));
+        if($currency->getLastPriceUpdate() <  $limit)
+        {
+            $price = $this->cryptoApi->getCryptoPrice($currency);
+            $currency->setLastPriceUpdate(new \DateTime());
+        }
         $currency->setCurrentPrice($price);
-        $currency->setLastPriceUpdate(new \DateTime());
         
-        $this->currencyRepo->entityManager->persist($currency);
-        $this->currencyRepo->entityManager->flush();
+
+        $this->currencyRepo->saveEntity($currency);
+        return $price;
     }
 
     public function translateStableCoinToFiat(Currency $stableCoin): ?Currency

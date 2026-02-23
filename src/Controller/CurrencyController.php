@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Currency;
+use App\Service\CryptoApi\CryptoApiProviderInterface;
+use App\Service\CurrencyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,12 +15,12 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/currency', name: 'app_currency')]
 final class CurrencyController extends AbstractController
 {
-    
     private $repository; 
 
     public function __construct(
         //private SerializerInterface $serializer,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private CurrencyService $service
     ) {
         $this->repository = $this->entityManager->getRepository(Currency::class);
     }
@@ -118,6 +120,24 @@ final class CurrencyController extends AbstractController
         $this->repository->removebyId($currency->getId());
         return $this->json([
             'message' => 'Currency deleted'
+        ]);
+    }
+
+    #[Route('/update/{symbol<[A-Za-z]+>}', name: 'update_by_symbol', methods: ['GET'])]
+    public function UpdateCurrencyBySymbol(string $symbol): JsonResponse
+    {
+        $currency = $this->repository->findOneBy(['symbol' => $symbol]);
+        
+        if ($currency === null) {
+            return $this->json(
+                ['error' => 'Currency with given symbol not found'], 
+                Response::HTTP_NOT_FOUND);
+        }
+        $price = $this->service->updatePrice($currency);
+
+        return $this->json([
+            'message' => 'Currency price updated',
+            'new price' => $price
         ]);
     }
 }
