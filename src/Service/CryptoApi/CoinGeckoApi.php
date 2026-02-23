@@ -22,18 +22,16 @@ class CoinGeckoApi implements CryptoApiProviderInterface
         $priceCurrency = strtolower($priceCurrency);
         $response = $this->httpClient->request('GET', self::BASE_URL . '/simple/price', [
             'headers' => [
-                'x-cg-pro-api-key' => $this->apiKey,
-            ],    
+                'x-cg-pro-api-key' => $this->apiKey
+            ],
             'query' => [
-                'symbols' => strtolower($currency->getSymbol()),
-                'vs_currencies' => $priceCurrency,
+                'symbols' => $currency->getCoinGeckoID(),
+                'vs_currencies' => $priceCurrency
             ]
         ]);
         
         $data = $response->toArray();
-        return $data[strtolower($currency->getSymbol())][$priceCurrency] 
-            ?? $data[strtolower($currency->getName())][$priceCurrency] 
-            ?? -1;
+        return $data[strtolower($currency->getCoinGeckoID())][$priceCurrency] ?? 0;
     }
     
 
