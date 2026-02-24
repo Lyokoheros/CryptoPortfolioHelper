@@ -10,13 +10,16 @@ class StructureService
         'getAssetValueInPortfolio',
         'getAssetCostInPortfolioPerCurrency',
         'getAssetTotalCostInPortfolio',
-        'getAssetsRealizedIncomeInPortfolio'
+        'getAssetsRealizedIncomeInPortfolio',
+        'getSoldOutPercentageInPortfolio'
     ];
 
     public function __construct(
         private AssetService $assetService,
         private PortfolioService $portfolioService
-    ) {}
+    ) {
+        $this->avaibleParameterFunctions = array_flip($this->avaibleParameterFunctions);
+    }
 
     public function getAssetStructurePerParameter(array $portfolios, Currency $baseCurrency, string $functionName, $optionalCriteria = []): array
     {//to do - generalizacja (dowolna funkcja zamiast getAssetValueInPortfolio) + kryteria
@@ -87,4 +90,13 @@ class StructureService
         );
     }
 
+    public function getSoldOutStructure(array $portfolios, Currency $baseCurrency, $optionalCriteria = []): array
+    {
+        return $this->getAssetStructurePerParameter(
+            $portfolios,
+            $baseCurrency,
+            'getSoldOutPercentageInPortfolio',
+            $optionalCriteria
+        );
+    }
 }

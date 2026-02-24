@@ -8,29 +8,69 @@ use App\Service\PricesService;
 
 class PortfolioService
 {
+    private $avaibleParameterFunctions = [
+        'getAssetValueInPortfolio',
+        'getAssetCostInPortfolioPerCurrency',
+        'getAssetTotalCostInPortfolio',
+        'getAssetsRealizedIncomeInPortfolio'
+    ];
+
     public function __construct(
         private CurrencyService $currencyService,
         private AssetService $assetService
-    ) {}
+    ) {
+        $this->avaibleParameterFunctions = array_flip($this->avaibleParameterFunctions);
+    }
 
     public function getAssetValueInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = [])
     {          
         return $this->assetService->getAssetQuantity($asset, [$portfolio], $optionalCriteria) * $this->currencyService->getPrice($asset, $baseCurrency);
     }
 
-    public function getCurrentPortfolioValue(Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
+    public function getPortfolioTotalsPerCriterium(Portfolio $portfolio, Currency $baseCurrency, string $criteriumFunction, array $optionalCriteria = []): float
     {
-        $portfolioValue = 0;
+        if(!isset($this->avaibleParameterFunctions[$criteriumFunction]))
+        {
+            throw new \InvalidArgumentException("Function '$criteriumFunction' is not allowed");
+        }
+        $portfolioTotal = 0;
         $assets = $this->assetService->getBoughtAssets([$portfolio]);
         foreach($assets as $asset)
         {
-            $portfolioValue += $this->getAssetValueInPortfolio(
+            $portfolioTotal += $this->$criteriumFunction(
                 $asset,
                 $portfolio,
                 $baseCurrency,
                 $optionalCriteria);
         }
-        return $portfolioValue;
+        return $portfolioTotal;
+    }
+
+    public function getCurrentPortfolioValue(Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
+    {
+        return $this->getPortfolioTotalsPerCriterium(
+            $portfolio, 
+            $baseCurrency, 
+            'getAssetValueInPortfolio',
+            $optionalCriteria);
+    }
+
+    public function getPortfolioTotalCost(Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
+    {
+        return $this->getPortfolioTotalsPerCriterium(
+            $portfolio, 
+            $baseCurrency, 
+            'getAssetTotalCostInPortfolio',
+            $optionalCriteria);
+    }
+
+    public function getTotalRealizedIncome(Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
+    {
+        return $this->getPortfolioTotalsPerCriterium(
+            $portfolio, 
+            $baseCurrency, 
+            'getAssetsRealizedIncomeInPortfolio',
+            $optionalCriteria);
     }
 
     public function getAssetCostInPortfolioPerCurrency(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
