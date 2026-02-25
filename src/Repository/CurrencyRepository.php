@@ -59,12 +59,25 @@ class CurrencyRepository extends EnhancedEntityRepository
 
     public function findOrCreateCurrency($symbol, $currencyData): Currency
     {
+        $currencyData['pricesCurrency'] ??= $this->findOneBy(['symbol' => 'USD']);
         return $this->findOneBy(['symbol' => $symbol]) ?? $this->addCurrency([
             ...['symbol' => $symbol],
             ...$currencyData
         ]);
     }
 
+    public function isInNiche(Currency $currency, string $wantedNiche): bool
+    {
+        $niches = $currency->getNiches() ?? [];
+        foreach($niches as $niche)
+        {
+            if($niche == $wantedNiche)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     public function findByNiche(string $niche): array
     {
         return $this->createQueryBuilder('c')

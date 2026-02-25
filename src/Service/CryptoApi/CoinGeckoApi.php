@@ -35,8 +35,9 @@ class CoinGeckoApi implements CryptoApiProviderInterface
         'LINK' => 'chainlink',
         'LUNA' => 'terra-luna',
         'MANA' => 'decentraland',
-        'MATIC' => 'matic-network',
+        'MATIC' => 'polygon-ecosystem-token',
         'NEAR' => 'near',
+        'POL' => 'polygon-ecosystem-token',
         'SEI' => 'sei-network',
         'SOL' => 'solana',
         'TRB' => 'tellor',
@@ -56,10 +57,15 @@ class CoinGeckoApi implements CryptoApiProviderInterface
     public function getCryptoPrice(Currency $currency, string $priceCurrency = 'usd'): float
     {
         $priceCurrency = strtolower($priceCurrency);
+        if($currency->getSymbol() == "EUR")
+        {
+            var_dump($currency->getPricesCurrency()->getSymbol());
+        }
+        
         $coinGeckoId = self::COIN_GECKO_IDS[$currency->getSymbol()];
         $response = $this->httpClient->request('GET', self::BASE_URL . '/simple/price', [
             'headers' => [
-                'x-cg-pro-api-key' => $this->apiKey
+                'x-cg-demo-api-key' => $this->apiKey
             ],
             'query' => [
                 'ids' => $coinGeckoId,
@@ -91,7 +97,7 @@ class CoinGeckoApi implements CryptoApiProviderInterface
 
         $response = $this->httpClient->request('GET', self::BASE_URL . '/simple/price', [
             'headers' => [
-                'x-cg-pro-api-key' => $this->apiKey
+                'x-cg-demo-api-key' => $this->apiKey
             ],
             'query' => [
                 'ids' => $ids,
@@ -100,6 +106,7 @@ class CoinGeckoApi implements CryptoApiProviderInterface
         ]);
         
         $data = $response->toArray();
+        //return ['data' => $data,'ids' => $ids];
 
         foreach($currencies as $currency)
         {
@@ -107,6 +114,7 @@ class CoinGeckoApi implements CryptoApiProviderInterface
             $prices[$currency->getSymbol()] = $data[$coinGeckoId][$priceCurrency];
         }
 
+        
         return $prices;
     }
     

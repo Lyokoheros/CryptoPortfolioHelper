@@ -34,7 +34,7 @@ class PortfolioService
             throw new \InvalidArgumentException("Function '$criteriumFunction' is not allowed");
         }
         $portfolioTotal = 0;
-        $assets = $this->assetService->getBoughtAssets([$portfolio]);
+        $assets = $this->assetService->getBoughtAssets([$portfolio], onlyCrypto: true);
         foreach($assets as $asset)
         {
             $portfolioTotal += $this->$criteriumFunction(
@@ -190,9 +190,24 @@ class PortfolioService
         ];
     }
 
+    public function getAllAssetsStatInPortfolio(Portfolio $portfolio, Currency $baseCurrency): array
+    {   
+        $assetsStats = [];
+        $allAssets = $this->assetService->getBoughtAssets([$portfolio], onlyCrypto: true);
+        foreach($allAssets as $asset)
+        {
+            $assetsStats[$asset->getSymbol()] = $this->getAssetStatInPortfolio(
+                $asset, 
+                $portfolio,
+                $baseCurrency);
+        }
+
+        return $assetsStats;
+    }
+
     public function getTopPerformer(Portfolio $portfolio, Currency $baseCurrency, string $parameter = 'valueBalance')
     {
-        $assets = $this->assetService->getBoughtAssets([$portfolio]);
+        $assets = $this->assetService->getBoughtAssets([$portfolio], onlyCrypto: true);
         $topPerformer = null;
         $topValue = null;
         foreach($assets as $asset)
@@ -206,9 +221,10 @@ class PortfolioService
             {
                 $topValue = $assetStat[$parameter];
                 $topPerformer = [
-                    'asset' => $asset,
-                    'stat' => $assetStat,
-                    'value' => $topValue
+                    'asset' => $asset->getSymbol(),
+                    'measuredStat' => $parameter,
+                    'value' => $topValue,
+                    'stat' => $assetStat
                 ];
             }
         }
@@ -217,7 +233,7 @@ class PortfolioService
 
     public function getBottomPerformer(Portfolio $portfolio, Currency $baseCurrency, string $parameter = 'valueBalance')
     {
-        $assets = $this->assetService->getBoughtAssets([$portfolio]);
+        $assets = $this->assetService->getBoughtAssets([$portfolio], onlyCrypto: true);
         $bottomPerformer = null;
         $bottomValue = null;
         foreach($assets as $asset)
@@ -231,9 +247,10 @@ class PortfolioService
             {
                 $bottomValue = $assetStat[$parameter];
                 $bottomPerformer = [
-                    'asset' => $asset,
-                    'stat' => $assetStat,
-                    'value' => $bottomValue
+                    'asset' => $asset->getSymbol(),
+                    'measuredStat' => $parameter,
+                    'value' => $bottomValue,
+                    'stat' => $assetStat
                 ];
             }
         }

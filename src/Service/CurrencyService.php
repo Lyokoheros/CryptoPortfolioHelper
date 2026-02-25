@@ -19,7 +19,14 @@ class CurrencyService
     {
         $now = new \DateTime();
         
-        if ($this->shouldUpdatePrice($currency)) 
+        $fiat = $this->currencyRepo->isInNiche($currency, 'fiat');
+
+        if($fiat)
+        {//fiat prices update will be implemented later
+            return $currency->getCurrentPrice();
+        }
+
+        if ($this->shouldUpdatePrice($currency) && !$fiat) 
         {
             $price = $this->cryptoApi->getCryptoPrice($currency);
             $currency->setLastPriceUpdate($now);
@@ -51,6 +58,7 @@ class CurrencyService
             {
                 $prices = $this->coinGecko->getCryptoPrices($currencies);
                 $assets = $currencies;
+                echo "1-";
                 foreach($assets as $currency)
                 {
                     $currency->setCurrentPrice($prices[$currency->getSymbol()]);

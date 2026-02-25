@@ -4,15 +4,16 @@ namespace App\Service;
 
 use App\Entity\Currency;
 use App\Entity\Portfolio;
+use App\Repository\CurrencyRepository;
 use App\Repository\TransactionBatchRepository;
 use App\Repository\TransactionRepository;
-use Symfony\Bridge\Doctrine\ManagerRegistry;
 
 class AssetService
 {
     public function __construct(
+        private CurrencyRepository $currencyRepository,
         private TransactionBatchRepository $transactionBatchRepository,
-        private TransactionRepository $transactionRepository,
+        private TransactionRepository $transactionRepository
     ) {}
 
     public function getAssetIncome(Currency $asset, array $portfolios, $optionalCriteria = []): float
@@ -77,7 +78,7 @@ class AssetService
             - $this->getAssetExpenses($asset, $portfolios, $optionalCriteria);
     }
 
-    public function getBoughtAssets(array $portfolios, array $optionalCriteria = []): array
+    public function getBoughtAssets(array $portfolios, array $optionalCriteria = [], bool $onlyCrypto = false): array
     {
         $assets = [];
         foreach($portfolios as $portfolio)
@@ -94,6 +95,10 @@ class AssetService
                 foreach($transactions as $transaction)
                 {  
                     $boughtAsset = $transaction->getBoughtCurrency();
+                    if( 
+                        ($this->currencyRepository->isInNiche($boughtAsset, 'fiat') ||
+                        $this->currencyRepository->isInNiche($boughtAsset, 'stablecoins')) && $onlyCrypto
+                    ) {continue;}
                     $assets[$boughtAsset->getId()] = $boughtAsset;
                 }
             }

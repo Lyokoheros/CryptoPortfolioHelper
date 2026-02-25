@@ -11,15 +11,18 @@ class CurrencyFixtures extends Fixture
     const FIAT_CURRENCIES_DATA = [
         [
             'name' => 'Polski Złoty',
-            'symbol' => 'PLN'
+            'symbol' => 'PLN',
+            'price' => 1
         ],
         [
             'name' => 'Dolar Amerykański',
-            'symbol' => 'USD'
+            'symbol' => 'USD',
+            'price' => 3,57
         ],
         [
             'name' => 'Euro',
-            'symbol' => 'EUR'
+            'symbol' => 'EUR',
+            'price' => 4,22
         ],
     ];
 
@@ -156,7 +159,7 @@ class CurrencyFixtures extends Fixture
             $currency->setName($currencyData['name']);
             $currency->setSymbol($currencyData['symbol']);
             $currency->setNiches(['fiat']);
-            $currency->setCurrentPrice(1);
+            $currency->setCurrentPrice($currencyData['price']);
             $objectManager->persist($currency);
             $this->fiatCurrencies[$currencyData['symbol']]=$currency;
         }

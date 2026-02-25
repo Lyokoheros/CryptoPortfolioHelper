@@ -26,7 +26,7 @@ class StructureService
         //CostStructure, RealizedGainsStructure 
         $structure = [];
         $totalValue = 0;
-        $assets = $this->assetService->getBoughtAssets($portfolios, $optionalCriteria);
+        $assets = $this->assetService->getBoughtAssets($portfolios, $optionalCriteria, true);
         if(!isset($this->avaibleParameterFunctions[$functionName]))
         {
             throw new \InvalidArgumentException("Function '$functionName' is not allowed");
