@@ -32,7 +32,7 @@ class AssetService
                 );
                 foreach($transactions as $transaction)
                 {  
-                    $assetQuantity += $transaction->getBuyValue();
+                    $assetIncome += $transaction->getBuyValue();
                     if($transaction->getFeeCurrency() && $transaction->getFeeCurrency() === $asset)
                     {
                         $assetIncome -= $transaction->getFee();

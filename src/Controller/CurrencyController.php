@@ -126,11 +126,12 @@ final class CurrencyController extends AbstractController
     #[Route('/update/coingecko-ids', name: 'update_coingecko_ids', methods: ['GET'])]
     public function UpdateCoinGeckoIDs(): JsonResponse
     {
-        $updates = $this->service->updateCoinGeckoIds();      
+        $updateData = $this->service->updateCoinGeckoIds();      
 
         return $this->json([
             'message' => 'Currency CoinGeckoIDs updated',
-            'new IDs' => $updates
+            'number of edits' => $updateData['updates'],
+            'new IDs' => $updateData['output']
         ]);
     }
 

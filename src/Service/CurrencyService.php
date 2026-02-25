@@ -43,6 +43,25 @@ class CurrencyService
         return $lastUpdate === null || $lastUpdate < $tenMinutesAgo;
     }
 
+    public function updatePriceInBullk(array $currencies): void
+    {
+        foreach($currencies as $currency)
+        {
+            if($this->shouldUpdatePrice($currency))
+            {
+                $prices = $this->coinGecko->getCryptoPrices($currencies);
+                $assets = $currencies;
+                foreach($assets as $currency)
+                {
+                    $currency->setCurrentPrice($prices[$currency->getSymbol()]);
+                    $this->currencyRepo->saveEntity($currency);
+                }  
+
+                break;                
+            }
+        }        
+    }
+
     public function translateStableCoinToFiat(Currency $stableCoin): ?Currency
     {
         $fiats = $this->currencyRepo->findFiatCurrencies();
@@ -71,35 +90,6 @@ class CurrencyService
             }
         }
         return $stableCoins;            
-    }
-
-    public function updateCoinGeckoIds(): int
-    {
-        $allCurrencies = $this->currencyRepo->findAll();
-        $coinGeckoData = null;
-        $updates = 0;
-
-        foreach($allCurrencies as $currency)
-        {
-            if($currency->getCoinGeckoID() === null)            
-            {
-                if($coinGeckoData === null)
-                {
-                    $coinGeckoData = $this->coinGecko->getApiCoinsList();
-                }
-            }
-            $symbol = strtolower($currency->getSymbol());
-            foreach($coinGeckoData as $coinData)
-            {
-                if($coinData['symbol'] == $symbol)
-                {
-                    $currency->setCoinGeckoID($coinData['id']);
-                    $this->currencyRepo->saveEntity($currency);
-                    $updates++;
-                }
-            }
-        }
-        return $updates;
     }
 
     public function getPrice(Currency $asset, Currency $baseCurrency): ?float
@@ -155,5 +145,42 @@ class CurrencyService
         }
         return null;
     }
+
+    public function updateCoinGeckoIds(): array //to be removed
+    {
+        $allCurrencies = $this->currencyRepo->findAll();
+        $coinGeckoData = null;
+        $updates = 0;
+        $output = [];
+
+        foreach($allCurrencies as $currency)
+        {
+            if($currency->getCoinGeckoID() === null || true)            
+            {
+                if($coinGeckoData === null)
+                {
+                    $coinGeckoData = $this->coinGecko->getApiCoinsList();
+                }
+            }
+            $symbol = strtolower($currency->getSymbol());
+            $coinGeckoData ??= [];
+            foreach($coinGeckoData as $coinData)
+            {
+                if($coinData['symbol'] == $symbol)
+                {
+                    $currency->setCoinGeckoID($coinData['id']);
+                    $this->currencyRepo->saveEntity($currency);
+                    $updates++;
+                    $output []= $symbol . " => " .$coinData['id'];
+                }
+            }
+        }
+        return [
+            'updates' => $updates,
+            'output' => $output
+        ];
+    }
+
+    
 
 }
