@@ -3,7 +3,6 @@
 namespace App\Service\CryptoApi;
 
 use App\Entity\Currency;
-use App\Service\CryptoApi\CryptoApiProviderInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -61,7 +60,7 @@ class CoinGeckoApi implements CryptoApiProviderInterface
         {
             var_dump($currency->getPricesCurrency()->getSymbol());
         }
-        
+
         $coinGeckoId = self::COIN_GECKO_IDS[$currency->getSymbol()];
         $response = $this->httpClient->request('GET', self::BASE_URL . '/simple/price', [
             'headers' => [

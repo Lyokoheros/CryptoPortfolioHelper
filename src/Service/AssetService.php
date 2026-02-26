@@ -18,65 +18,37 @@ class AssetService
 
     public function getAssetIncome(Currency $asset, array $portfolios, $optionalCriteria = []): float
     {
-        $assetIncome = 0; 
-        foreach($portfolios as $portfolio)
+        $total = 0;
+        foreach ($portfolios as $portfolio)
         {
-            $transactionBatchess = $this->transactionBatchRepository->findBy(['portfolio' => $portfolio]);
-
-            foreach($transactionBatchess as $transactionBatch)
-            {
-                $transactions = $this->transactionRepository->findBy(
-                    [
-                        ...['transactionBatch' => $transactionBatch, 'boughtCurrency' => $asset],
-                        ...$optionalCriteria //for using in customizable specific querries like only for specific exchange
-                    ]    
-                );
-                foreach($transactions as $transaction)
-                {  
-                    $assetIncome += $transaction->getBuyValue();
-                    if($transaction->getFeeCurrency() && $transaction->getFeeCurrency() === $asset)
-                    {
-                        $assetIncome -= $transaction->getFee();
-                    }
-                }
-            }
+            $total += $this->transactionRepository->getAssetIncome(
+                $asset,
+                $portfolio,
+                $optionalCriteria
+            );
         }
-        return $assetIncome;
+        return $total;
     }
 
     public function getAssetExpenses(Currency $asset, array $portfolios, $optionalCriteria = []): float
     {
-        $assetExpenses = 0; 
-        foreach($portfolios as $portfolio)
+        $total = 0;
+        foreach ($portfolios as $portfolio)
         {
-            $transactionBatchess = $this->transactionBatchRepository->findBy(['portfolio' => $portfolio]);
-
-            foreach($transactionBatchess as $transactionBatch)
-            {
-                $transactions = $this->transactionRepository->findBy(
-                    [
-                        ...['transactionBatch' => $transactionBatch, 'soldCurrency' => $asset],
-                        ...$optionalCriteria //for using in customizable specific querries like only for specific exchange
-                    ]    
-                );
-                foreach($transactions as $transaction)
-                {  
-                    $assetExpenses += $transaction->getBuyValue();
-                    if($transaction->getFeeCurrency() && $transaction->getFeeCurrency() === $asset)
-                    {
-                        $assetExpenses += $transaction->getFee();
-                    }
-                }
-            }
+            $total += $this->transactionRepository->getAssetExpenses(
+                $asset,
+                $portfolio,
+                $optionalCriteria
+            );
         }
-        return $assetExpenses;
+        return $total;
     }
     
     public function getAssetQuantity(Currency $asset, array $portfolios, array $optionalCriteria = []): float
     {
         return $this->getAssetIncome($asset, $portfolios, $optionalCriteria) 
             - $this->getAssetExpenses($asset, $portfolios, $optionalCriteria);
-    }
+     }
 
     public function getSoldAssets(Portfolio $portfolio): array
     {
