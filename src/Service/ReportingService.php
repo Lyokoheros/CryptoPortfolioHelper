@@ -18,7 +18,7 @@ class ReportingService
     {
         $baseCurrency ??= $portfolio->getUser()->getDisplayCurrency();
         
-        $this->currencyService->updatePriceInBullk($this->assetService->getBoughtAssets([$portfolio], onlyCrypto: true));
+        $this->currencyService->updatePriceInBullk($portfolio->getBoughtAssets());
 
         return [
             'portfolioName' => $portfolio->getName(),
@@ -55,7 +55,7 @@ class ReportingService
     {
         $baseCurrency ??= $portfolio->getUser()->getDisplayCurrency();
         
-        $this->currencyService->updatePriceInBullk($this->assetService->getBoughtAssets([$portfolio], onlyCrypto: true));
+        $this->currencyService->updatePriceInBullk($portfolio->getBoughtAssets());
 
         return [
             'portfolioName' => $portfolio->getName(),
@@ -84,7 +84,7 @@ class ReportingService
     {
         $baseCurrency ??= $portfolio->getUser()->getDisplayCurrency();
         
-        $this->currencyService->updatePriceInBullk($this->assetService->getBoughtAssets([$portfolio], onlyCrypto: true));
+        $this->currencyService->updatePriceInBullk($portfolio->getBoughtAssets());
 
         return [
             'portfolioName' => $portfolio->getName(),
@@ -110,7 +110,7 @@ class ReportingService
     {
         $baseCurrency ??= $portfolio->getUser()->getDisplayCurrency();
         
-        $this->currencyService->updatePriceInBullk($this->assetService->getBoughtAssets([$portfolio], onlyCrypto: true));
+        $this->currencyService->updatePriceInBullk($portfolio->getBoughtAssets());
 
         return [
             'portfolioName' => $portfolio->getName(),

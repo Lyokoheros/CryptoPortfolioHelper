@@ -56,10 +56,24 @@ class Portfolio
     #[Groups(['userProfile', 'portfolioList', 'portfolioView'])]
     private float $totalPortfolioValue = 0.0;
 
+    /**
+     * @var Collection<int, Currency>
+     */
+    #[ORM\ManyToMany(targetEntity: Currency::class)]
+    private Collection $boughtAssets;
+
+    /**
+     * @var Collection<int, Currency>
+     */
+    #[ORM\ManyToMany(targetEntity: Currency::class)]
+    private Collection $soldAssets;
+
     public function __construct()
     {
         $this->transactionBatches = new ArrayCollection();
         $this->startingDate = new \DateTime();
+        $this->boughtAssets = new ArrayCollection();
+        $this->soldAssets = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -177,6 +191,64 @@ class Portfolio
     public function setTotalPortfolioValue(float $totalPortfolioValue): static
     {
         $this->totalPortfolioValue = $totalPortfolioValue;
+
+        return $this;
+    }
+
+    /**
+     * @return Currency[]
+     */
+    public function getBoughtAssets(): array
+    {
+        $indexed = [];
+        foreach ($this->boughtAssets as $currency)
+        {
+            $indexed[$currency->getSymbol()] = $currency;
+        }
+        return $indexed;
+    }
+
+    public function addBoughtAsset(Currency $boughtAsset): static
+    {
+        if (!$this->boughtAssets->contains($boughtAsset)) {
+            $this->boughtAssets->add($boughtAsset);
+        }
+
+        return $this;
+    }
+
+    public function removeBoughtAsset(Currency $boughtAsset): static
+    {
+        $this->boughtAssets->removeElement($boughtAsset);
+
+        return $this;
+    }
+
+    /**
+     * @return Currency[]
+     */
+    public function getSoldAssets():  array
+    {
+        $indexed = [];
+        foreach ($this->soldAssets as $currency)
+        {
+            $indexed[$currency->getSymbol()] = $currency;
+        }
+        return $indexed;
+    }
+
+    public function addSoldAsset(Currency $soldAsset): static
+    {
+        if (!$this->soldAssets->contains($soldAsset)) {
+            $this->soldAssets->add($soldAsset);
+        }
+
+        return $this;
+    }
+
+    public function removeSoldAsset(Currency $soldAsset): static
+    {
+        $this->soldAssets->removeElement($soldAsset);
 
         return $this;
     }

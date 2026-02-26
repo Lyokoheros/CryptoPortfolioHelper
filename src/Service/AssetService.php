@@ -78,35 +78,6 @@ class AssetService
             - $this->getAssetExpenses($asset, $portfolios, $optionalCriteria);
     }
 
-    public function getBoughtAssets(array $portfolios, array $optionalCriteria = [], bool $onlyCrypto = false): array
-    {
-        $assets = [];
-        foreach($portfolios as $portfolio)
-        {
-            $transactionBatchess = $this->transactionBatchRepository->findBy(['portfolio' => $portfolio]);
-
-            foreach($transactionBatchess as $transactionBatch)
-            {
-                $transactions = $this->transactionRepository->findBy([
-                    ...['transactionBatch' => $transactionBatch],
-                    ...$optionalCriteria
-                    ]);
-
-                foreach($transactions as $transaction)
-                {  
-                    $boughtAsset = $transaction->getBoughtCurrency();
-                    if( 
-                        ($this->currencyRepository->isInNiche($boughtAsset, 'fiat') ||
-                        $this->currencyRepository->isInNiche($boughtAsset, 'stablecoins')) && $onlyCrypto
-                    ) {continue;}
-                    $assets[$boughtAsset->getId()] = $boughtAsset;
-                }
-            }
-           
-        }        
-        return $assets;
-    }
-
     public function getSoldAssets(Portfolio $portfolio): array
     {
         $assets = [];
