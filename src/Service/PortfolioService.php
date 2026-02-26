@@ -34,7 +34,7 @@ class PortfolioService
             throw new \InvalidArgumentException("Function '$criteriumFunction' is not allowed");
         }
         $portfolioTotal = 0;
-        $assets = $this->assetService->getBoughtAssets([$portfolio], onlyCrypto: true);
+        $assets = $portfolio->getBoughtAssets();
         foreach($assets as $asset)
         {
             $portfolioTotal += $this->$criteriumFunction(
@@ -193,7 +193,7 @@ class PortfolioService
     public function getAllAssetsStatInPortfolio(Portfolio $portfolio, Currency $baseCurrency): array
     {   
         $assetsStats = [];
-        $allAssets = $this->assetService->getBoughtAssets([$portfolio], onlyCrypto: true);
+        $allAssets = $portfolio->getBoughtAssets();
         foreach($allAssets as $asset)
         {
             $assetsStats[$asset->getSymbol()] = $this->getAssetStatInPortfolio(
@@ -207,7 +207,7 @@ class PortfolioService
 
     public function getTopPerformer(Portfolio $portfolio, Currency $baseCurrency, string $parameter = 'valueBalance')
     {
-        $assets = $this->assetService->getBoughtAssets([$portfolio], onlyCrypto: true);
+        $assets = $portfolio->getBoughtAssets();
         $topPerformer = null;
         $topValue = null;
         foreach($assets as $asset)
@@ -233,7 +233,7 @@ class PortfolioService
 
     public function getBottomPerformer(Portfolio $portfolio, Currency $baseCurrency, string $parameter = 'valueBalance')
     {
-        $assets = $this->assetService->getBoughtAssets([$portfolio], onlyCrypto: true);
+        $assets = $portfolio->getBoughtAssets();
         $bottomPerformer = null;
         $bottomValue = null;
         foreach($assets as $asset)

@@ -6,18 +6,36 @@ use App\Entity\Currency;
 use App\Repository\CurrencyRepository;
 use App\Service\CryptoApi\CoinGeckoApi;
 use App\Service\CryptoApi\CryptoApiProviderInterface;
+use DateTime;
 
 class CurrencyService
 {   
+    private array $priceCache = [];
+    private string $updateFrequency = '10 minutes';
+    private DateTime $lastCacheRefresh;
+
     public function __construct(
         private CurrencyRepository $currencyRepo,
         private CryptoApiProviderInterface $cryptoApi,
         private CoinGeckoApi $coinGecko
-    ) {}
+    ) {
+        $this->lastCacheRefresh = new DateTime();
+    }
+
+    public function checkPriceCache(): void
+    {
+        $now = new DateTime();
+        $dateLimit= $now->modify('-'.$this->updateFrequency);
+
+        if($this->lastCacheRefresh < $dateLimit)
+        {
+            $this->priceCache = [];
+        }        
+    }
 
     public function updatePrice(Currency $currency): float
     {
-        $now = new \DateTime();
+        $now = new DateTime();
         
         $fiat = $this->currencyRepo->isInNiche($currency, 'fiat');
 
@@ -45,9 +63,9 @@ class CurrencyService
     private function shouldUpdatePrice(Currency $currency): bool
     {
         $lastUpdate = $currency->getLastPriceUpdate();
-        $tenMinutesAgo = (new \DateTime())->modify('-10 minutes');
+        $dateLimit= (new DateTime())->modify('-'.$this->updateFrequency);
         
-        return $lastUpdate === null || $lastUpdate < $tenMinutesAgo;
+        return $lastUpdate === null || $lastUpdate < $dateLimit;
     }
 
     public function updatePriceInBullk(array $currencies): void
@@ -102,7 +120,15 @@ class CurrencyService
 
     public function getPrice(Currency $asset, Currency $baseCurrency): ?float
     {
+        $this->checkPriceCache();
+        $assetSymbol = $asset->getSymbol();
+        $baseSymbol = $baseCurrency->getSymbol();
+        if(isset($this->priceCache[$assetSymbol][$baseSymbol]))
+        {
+            return $this->priceCache[$assetSymbol][$baseSymbol];
+        }
         $this->updatePrice($asset);
+
         $assetCurrencyId = $asset->getId();
 
         $currency = $this->currencyRepo->findOneBy([
@@ -113,18 +139,29 @@ class CurrencyService
         if($currency)
         {
             $this->updatePrice($currency);
-            return $currency->getCurrentPrice();
+            $price = $currency->getCurrentPrice();
+            $this->priceCache[$assetSymbol][$baseSymbol] = $price;
+            $this->priceCache[$baseSymbol][$assetSymbol] = 1.0 / $price;
+            return $price;
         }
         else
         {
+            if(isset($this->priceCache[$baseSymbol][$assetSymbol]))
+            {
+                return $this->priceCache[$baseSymbol][$assetSymbol];
+            }
             $baseCurrencyId = $baseCurrency->getId();
             $currency = $this->currencyRepo->findOneBy([
                 'id' => $baseCurrencyId, 
                 'pricesCurrency' => $asset]);
+            
             if($currency)
             {
-                $this->updatePrice($currency);
-                return (1.0 / $currency->getCurrentPrice());
+                $price = $this->updatePrice($currency);
+                $this->priceCache[$assetSymbol][$baseSymbol] =  1.0 / $price;
+                $this->priceCache[$baseSymbol][$assetSymbol] = $price;
+                
+                return (1.0 / $price);
             }
             else
             {
@@ -132,10 +169,18 @@ class CurrencyService
                     'id' => $asset->getPricesCurrency()->getId(),
                     'pricesCurrency' => $baseCurrency
                 ]);
+                $priceSymbol = $asset->getPricesCurrency()->getSymbol();
                 if($currency)
                 {
-                    $this->updatePrice($currency);
-                    return ($currency->getCurrentPrice() * $asset->getCurrentPrice());
+                    $price = $this->updatePrice($currency);
+                    
+                    $this->priceCache[$priceSymbol][$baseSymbol] =  $price;
+                    $this->priceCache[$baseSymbol][$priceSymbol] =  1.0 / $price;
+                    $price *=$asset->getCurrentPrice();
+                    $this->priceCache[$assetSymbol][$baseSymbol] = $price;
+                    $this->priceCache[$baseSymbol][$assetSymbol] = 1.0 / $price;
+
+                    return $price;
                 }
                 else
                 {
@@ -145,14 +190,24 @@ class CurrencyService
                     ]);
                     if($currency)
                     {
-                        $this->updatePrice($currency);
-                        return ($asset->getCurrentPrice() / $currency->getCurrentPrice());
+                        $price = $this->updatePrice($currency);
+                        $this->priceCache[$baseSymbol][$priceSymbol] =  $price;
+                        $this->priceCache[$priceSymbol][$baseSymbol] =  1.0 / $price;
+                    
+                        $price = $asset->getCurrentPrice() / $price;
+                        
+                        $this->priceCache[$baseSymbol][$assetSymbol] = $price;
+                        $this->priceCache[$assetSymbol][$baseSymbol] = 1.0 / $price;
+
+                        return $price;
                     }
                 }
             }
         }
         return null;
     }
+
+
 
     public function updateCoinGeckoIds(): array //to be removed
     {
