@@ -43,7 +43,11 @@ class Portfolio
     /**
      * @var Collection<int, TransactionBatch>
      */
-    #[ORM\OneToMany(targetEntity: TransactionBatch::class, mappedBy: 'portfolio')]
+    #[ORM\OneToMany(
+        targetEntity: TransactionBatch::class,
+        mappedBy: 'portfolio',
+        fetch: 'LAZY'
+    )]
     #[Groups(['portfolioView'])]
     private Collection $transactionBatches;
 
@@ -60,12 +64,16 @@ class Portfolio
      * @var Collection<int, Currency>
      */
     #[ORM\ManyToMany(targetEntity: Currency::class)]
+    #[ORM\JoinTable(name: "portfolio_bought_assets")]
+    #[Groups(['portfolioView'])]
     private Collection $boughtAssets;
 
     /**
      * @var Collection<int, Currency>
      */
     #[ORM\ManyToMany(targetEntity: Currency::class)]
+    #[ORM\JoinTable(name: "portfolio_sold_assets")]
+    #[Groups(['portfolioView'])]
     private Collection $soldAssets;
 
     public function __construct()
@@ -195,8 +203,8 @@ class Portfolio
         return $this;
     }
 
-    /**
-     * @return Currency[]
+    /** 
+     * @return array<string, Currency> 
      */
     public function getBoughtAssets(): array
     {
@@ -224,8 +232,8 @@ class Portfolio
         return $this;
     }
 
-    /**
-     * @return Currency[]
+    /** 
+     * @return array<string, Currency> 
      */
     public function getSoldAssets():  array
     {

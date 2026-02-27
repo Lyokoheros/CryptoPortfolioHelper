@@ -25,11 +25,12 @@ class CurrencyService
     public function checkPriceCache(): void
     {
         $now = new DateTime();
-        $dateLimit= $now->modify('-'.$this->updateFrequency);
+        $dateLimit= (clone $now)->modify('-'.$this->updateFrequency);
 
         if($this->lastCacheRefresh < $dateLimit)
         {
             $this->priceCache = [];
+            $this->lastCacheRefresh = $now;
         }        
     }
 

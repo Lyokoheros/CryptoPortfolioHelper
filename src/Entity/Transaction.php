@@ -204,18 +204,20 @@ class Transaction
         }
 
         if ($this->getFeeCurrency() === $this->getSoldCurrency())
-        {            
-            $effectivePrice = $this->getBuyValue()/
-                ($this->getSellValue() + $this->getFee());
-        }
-        elseif (($this->getFeeCurrency() === $this->getBoughtCurrency()))
         {
-            $effectivePrice = ($this->getBuyValue()-$this->getFee())/
-                $this->getSellValue();
+            // Fee increases the effective cost
+            $effectivePrice = ($this->getSellValue() + $this->getFee()) /
+                $this->getBuyValue();
+        }
+        elseif ($this->getFeeCurrency() === $this->getBoughtCurrency())
+        {
+            // Fee reduces the amount received
+            $effectivePrice = $this->getSellValue() /
+                ($this->getBuyValue() - $this->getFee());
         }
         else
         {
-            $effectivePrice = $this->getBuyValue()/$this->getSellValue();
+            $effectivePrice = $this->getSellValue() / $this->getBuyValue();
         }
             
         $this->setEffectivePrice($effectivePrice);

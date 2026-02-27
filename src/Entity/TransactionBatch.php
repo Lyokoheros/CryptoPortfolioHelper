@@ -43,8 +43,12 @@ class TransactionBatch
     /**
      * @var Collection<int, Transaction>
      */
-    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'transactionBatch')]
-    #[Groups(['portfolioView', 'transactionBatchList'])]
+    #[ORM\OneToMany(
+        targetEntity: Transaction::class,
+        mappedBy: 'transactionBatch',
+        fetch: 'LAZY'
+    )]
+    #[Groups(['transactionBatchList'])]
     private Collection $transactions;
 
     #[ORM\ManyToOne(inversedBy: 'TransactionBatches')]

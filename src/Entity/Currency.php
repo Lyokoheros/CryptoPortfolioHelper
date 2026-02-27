@@ -6,6 +6,7 @@ use App\Repository\CurrencyRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Attribute\Ignore;
 
 #[ORM\Entity(repositoryClass: CurrencyRepository::class)]
 #[ORM\Table(name: 'currencies')]
@@ -47,7 +48,7 @@ class Currency
 
     #[ORM\Column(type: Types::ARRAY, nullable: true)]
     #[Groups(['currencyDetails', 'currencyList'])]
-    private ?array $niches = null;
+    private array $niches = [];
 
     #[ORM\Column(nullable: true)]
     #[Groups(['currencyDetails'])]
@@ -213,6 +214,7 @@ class Currency
         return $this;
     }
 
+    #[Ignore] 
     public function isInNiches(array $niches): bool
     {
         $niches = array_flip($niches);

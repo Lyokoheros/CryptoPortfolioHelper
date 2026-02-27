@@ -18,6 +18,7 @@ class CurrencyRepository extends EnhancedEntityRepository
     public function addCurrency($currencyData): Currency
     {
         $currency = new Currency();
+        $currency->setNiches([]);
 
         $this->entityManager->persist($currency);
 

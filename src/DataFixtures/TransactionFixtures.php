@@ -244,8 +244,14 @@ class TransactionFixtures extends Fixture implements DependentFixtureInterface
                     $transaction->setMarketPrice($transactionData['marketPrice'] ?? $transaction->getSellValue()/$transaction->getBuyValue());
                     $transaction->calculateEffectivePrice();
 
+                    $tPortfolio = $transaction->getTransactionBatch()->getPortfolio();
+
+                    $tPortfolio->addBoughtAsset($transaction->getBoughtCurrency());
+                    $tPortfolio->addSoldAsset($transaction->getSoldCurrency());
+
 //                    var_dump($transaction);
                     $manager->persist($transaction);
+                    $manager->persist($tPortfolio);
 
                 }
            }

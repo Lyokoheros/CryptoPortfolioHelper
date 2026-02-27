@@ -17,13 +17,13 @@ class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInt
     public function parseTransactionsCSVData($csvData, User $user): void
     {
         $exchange = $this->getExchange();
-        $transactionData = $this->parseCSV($csvData);
+        $transactionDatas = $this->parseCSV($csvData);
         $defaultPortfolio = $this->userRepo->findUsersDefaultPortfolio($user);
 
         $defualtBatchName = "Purchase";
         $portfolio = null;
         $portfolioOrdinalNumbers = [];
-        foreach($transactionData as $transactionData)
+        foreach($transactionDatas as $transactionData)
         {
             
             if(isset($transactionData['portfolio']))
@@ -108,15 +108,18 @@ class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInt
             $this->transactionRepo->editEntity($transaction, [
                 'transactionBatch' => $batch,
                 'BoughtCurrency' => $boughtCurrency,
-                'BuyValue' => $buyValue,
+                'BuyValue' => (float)$buyValue,
                 'SoldCurrency' => $soldCurrency,
-                'SellValue' => $sellValue,
+                'SellValue' => (float)$sellValue,
                 'FeeCurrency' => $feeCurrency,
-                'Fee' => $fee['value'],
+                'Fee' => (float)$fee['value'],
                 'Exchange' => $exchange,
-                'MarketPrice' => $transactionData['Price'],
+                'MarketPrice' => (float)$transactionData['Price'],
                 'Date' => new DateTime($transactionData['Date(UTC)'])
             ]);
+            $portfolio->addBoughtAsset($boughtCurrency);
+            $portfolio->addSoldAsset($soldCurrency);
+
 
             $transactionCountInBatch = count($this->transactionRepo
                 ->findBy(['transactionBatch' => $batch]));
@@ -124,7 +127,10 @@ class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInt
             if($transactionCountInBatch == $portfolio->getBatchSize())
             {
                 $this->transactionBatchRepo->editTransactionBatch($batch, ['isFinished' => true]);
+                $this->transactionBatchRepo->saveEntity($batch);
             }
+
+            $this->currencyRepo->saveEntity($portfolio);
         }
     }
 

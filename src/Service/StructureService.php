@@ -22,8 +22,7 @@ class StructureService
     }
 
     public function getAssetStructurePerParameter(array $portfolios, Currency $baseCurrency, string $functionName, $optionalCriteria = []): array
-    {//to do - generalizacja (dowolna funkcja zamiast getAssetValueInPortfolio) + kryteria
-        //CostStructure, RealizedGainsStructure 
+    {
         $structure = [];
         $totalValue = 0;
         if(!isset($this->avaibleParameterFunctions[$functionName]))
@@ -43,11 +42,8 @@ class StructureService
                     $baseCurrency, 
                     $optionalCriteria
                 );
-                $structure[$asset->getSymbol()] = [
-                    'asset' => $asset,
-                    'value' => ($structure[$asset->getSymbol()]['value'] ?? 0) 
-                        + $assetValue
-                ];
+                $structure[$asset->getSymbol()]['value'] = ($structure[$asset->getSymbol()] ?? 0) 
+                        + $assetValue;
                 $totalValue += $assetValue;
             }   
         }

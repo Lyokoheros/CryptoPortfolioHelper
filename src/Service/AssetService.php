@@ -23,7 +23,7 @@ class AssetService
         {
             $total += $this->transactionRepository->getAssetIncome(
                 $asset,
-                $portfolio,
+                [$portfolio],
                 $optionalCriteria
             );
         }
@@ -37,7 +37,7 @@ class AssetService
         {
             $total += $this->transactionRepository->getAssetExpenses(
                 $asset,
-                $portfolio,
+                [$portfolio],
                 $optionalCriteria
             );
         }
