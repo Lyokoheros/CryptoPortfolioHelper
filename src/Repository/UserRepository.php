@@ -54,16 +54,24 @@ class UserRepository extends EnhancedEntityRepository
     }   
 
     public function editUser($id, $userData): array
-    {
+    { 
         $user = $this->find($id);
 
-        if(isset($userData['nativeCurrency']))
+        if(isset($userData['nativeCurrencySymbol']))
         {
-            $userData['nativeCurrency']  = $this->currencyRepository->findOneBy(['symbol' => $userData['nativeCurrency']]);
+            $userData['nativeCurrency']  = $this->currencyRepository->findOneBy(['symbol' => $userData['nativeCurrencySymbol']]);
         }
-        if(isset($userData['displayCurrency']))
+        if(isset($userData['nativeCurrencyId']))
         {
-            $userData['displayCurrency']  = $this->currencyRepository->findOneBy(['symbol' => $userData['displayCurrency']]);
+            $userData['nativeCurrency']  = $this->currencyRepository->find($userData['nativeCurrencyId']);
+        }
+        if(isset($userData['displayCurrencySymbol']))
+        {
+            $userData['displayCurrency']  = $this->currencyRepository->findOneBy(['symbol' => $userData['displayCurrencySymbol']]);
+        }
+        if(isset($userData['displayCurrencyId']))
+        {
+            $userData['displayCurrency']  = $this->currencyRepository->find($userData['displayCurrencyId']);
         }
         $this->editEntity($user, $userData);
 

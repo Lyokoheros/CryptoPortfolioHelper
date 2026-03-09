@@ -50,22 +50,12 @@ class AssetService
             - $this->getAssetExpenses($asset, $portfolios, $optionalCriteria);
      }
 
-    public function getSoldAssets(Portfolio $portfolio): array
+    public function getAssetsExpensesInPortfolio(Portfolio $portfolio, $optionalCriteria = []): array
     {
-        $assets = [];
-        $transactionBatchess = $this->transactionBatchRepository->findBy(['portfolio' => $portfolio]);
-
-        foreach($transactionBatchess as $transactionBatch)
-        {
-            $transactions = $this->transactionRepository->findBy(['transactionBatch' => $transactionBatch]);
-
-            foreach($transactions as $transaction)
-            {  
-                $soldAsset = $transaction->getSoldCurrency();
-                $assets[$soldAsset->getId()] = $soldAsset;
-            }
-        }
-        return $assets;
+        return $this->transactionRepository->getAssetsExpensesInPortfolio(
+            $portfolio, 
+            $optionalCriteria
+        );
     }
     
 }

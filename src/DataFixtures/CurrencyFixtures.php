@@ -173,6 +173,17 @@ class CurrencyFixtures extends Fixture
             $fiatCurrency->setPricesCurrency($this->fiatCurrencies['PLN']);
             $objectManager->persist($fiatCurrency);
         }
+        $usd = $this->fiatCurrencies['USD'];
+        $eur = $this->fiatCurrencies['EUR'];
+        $currency = new Currency();
+        $currency->setName("Euro");
+        $currency->setSymbol('EUR');
+        $currency->setNiches(['fiat']);
+        $currency->setCurrentPrice(
+            $eur->getCurrentPrice()
+             / $usd->getCurrentPrice());
+        $currency->setPricesCurrency($usd);
+        $objectManager->persist($currency);
     }
 
     public function loadCryptoCurrencies(ObjectManager $objectManager): void

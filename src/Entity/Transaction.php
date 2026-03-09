@@ -16,10 +16,13 @@ class Transaction
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails'])]
+    #[Groups(['transactionBatchList', 'transactionList', 'transactionDetails'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'transactions')]
+    #[ORM\ManyToOne(
+        inversedBy: 'transactions',
+        fetch: 'LAZY'
+    )]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['transactionList', 'transactionDetails'])]
     private ?TransactionBatch $transactionBatch = null;
@@ -31,13 +34,13 @@ class Transaction
     
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails'])]
+    #[Groups(['transactionBatchList', 'transactionList', 'transactionDetails'])]
 
     private ?Currency $boughtCurrency = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['portfolioView', 'transactionBatchList', 'transactionList', 'transactionDetails'])]
+    #[Groups(['transactionBatchList', 'transactionList', 'transactionDetails'])]
     private ?Currency $soldCurrency = null;
     
     #[ORM\ManyToOne]

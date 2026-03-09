@@ -18,7 +18,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             'email' => 'maciej.a.tomaszyk@gmail.com',
             'country' => 'Poland',
             'nativeCurrency' => 'PLN',
-            'displayCurrency' => 'EUR'
+            'displayCurrency' => 'USD'
         ]
     ];
 

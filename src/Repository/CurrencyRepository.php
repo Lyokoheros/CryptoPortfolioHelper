@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Currency;
+use DateTime;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -10,9 +11,24 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class CurrencyRepository extends EnhancedEntityRepository
 {
+    private $currencyCache;
+    private ?DateTime $lastCacheRefresh = null;
+    private string $updateFrequency = '2 minutes';
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry);
+    }
+
+    public function checkAssetCache(): void
+    { 
+        $now = new DateTime();
+        $dateLimit = (clone $now)->modify('-' . $this->updateFrequency);
+
+        if ($this->lastCacheRefresh === null || $this->lastCacheRefresh < $dateLimit) {
+            $this->currencyCache = [];
+            $this->lastCacheRefresh = $now;
+        }
     }
 
     public function addCurrency($currencyData): Currency
@@ -65,6 +81,17 @@ class CurrencyRepository extends EnhancedEntityRepository
             ...['symbol' => $symbol],
             ...$currencyData
         ]);
+    }
+
+    public function getCurrencyForSymbol($symbol): Currency
+    {
+        if(isset($this->currencyCache[$symbol]))
+        {
+            return $this->currencyCache[$symbol];
+        }
+        $this->currencyCache[$symbol] = $this->findOneBy(['symbol' => $symbol]);
+
+        return $this->currencyCache[$symbol];
     }
 
     public function isInNiche(Currency $currency, string $wantedNiche): bool

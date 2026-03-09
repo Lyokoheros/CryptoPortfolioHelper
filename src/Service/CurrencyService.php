@@ -7,21 +7,34 @@ use App\Repository\CurrencyRepository;
 use App\Service\CryptoApi\CoinGeckoApi;
 use App\Service\CryptoApi\CryptoApiProviderInterface;
 use DateTime;
+use Psr\Log\LoggerInterface;
 
 class CurrencyService
 {   
     private array $priceCache = [];
-    private string $updateFrequency = '10 minutes';
+    private string $updateFrequency = '600 minutes';
     private DateTime $lastCacheRefresh;
 
     public function __construct(
         private CurrencyRepository $currencyRepo,
         private CryptoApiProviderInterface $cryptoApi,
-        private CoinGeckoApi $coinGecko
+        private CoinGeckoApi $coinGecko,
+        private LoggerInterface $logger
     ) {
         $this->lastCacheRefresh = new DateTime();
     }
 
+    private function logMemory(string $label): void
+    {
+        $usage = memory_get_usage(true) / 1024 / 1024;
+        $peak = memory_get_peak_usage(true) / 1024 / 1024;
+        $this->logger->info("[$label] Current: {$usage}MB | Peak: {$peak}MB");
+    }
+
+    public function getCache():void
+    {
+        var_dump($this->priceCache);
+    }
     public function checkPriceCache(): void
     {
         $now = new DateTime();
@@ -76,8 +89,12 @@ class CurrencyService
             if($this->shouldUpdatePrice($currency))
             {
                 $prices = $this->coinGecko->getCryptoPrices($currencies);
+                //test
+                //echo "new prices";
+                //var_dump($prices);
+                //echo "updating prices\n";
                 $assets = $currencies;
-                echo "1-";
+                
                 foreach($assets as $currency)
                 {
                     $currency->setCurrentPrice($prices[$currency->getSymbol()]);
@@ -129,11 +146,12 @@ class CurrencyService
             return $this->priceCache[$assetSymbol][$baseSymbol];
         }
         $this->updatePrice($asset);
-
-        $assetCurrencyId = $asset->getId();
+            //test
+            //echo "\nprice cache \n";
+            //var_dump($this->priceCache);
 
         $currency = $this->currencyRepo->findOneBy([
-            'id' => $assetCurrencyId,
+            'symbol' => $assetSymbol,
             'pricesCurrency' => $baseCurrency
         ]);
 
@@ -142,6 +160,8 @@ class CurrencyService
             $this->updatePrice($currency);
             $price = $currency->getCurrentPrice();
             $this->priceCache[$assetSymbol][$baseSymbol] = $price;
+            //test  
+            //echo "/n Price of ".$assetSymbol." in ".$baseSymbol." is ".$price."\n";
             $this->priceCache[$baseSymbol][$assetSymbol] = 1.0 / $price;
             return $price;
         }
@@ -149,55 +169,86 @@ class CurrencyService
         {
             if(isset($this->priceCache[$baseSymbol][$assetSymbol]))
             {
-                return $this->priceCache[$baseSymbol][$assetSymbol];
+                $this->priceCache[$assetSymbol][$baseSymbol] = 1.0/$this->priceCache[$baseSymbol][$assetSymbol];
+                return $this->priceCache[$assetSymbol][$baseSymbol];
             }
-            $baseCurrencyId = $baseCurrency->getId();
             $currency = $this->currencyRepo->findOneBy([
-                'id' => $baseCurrencyId, 
-                'pricesCurrency' => $asset]);
+                'symbol' => $baseSymbol, 
+                'pricesCurrency' => $asset
+            ]);
             
             if($currency)
             {
                 $price = $this->updatePrice($currency);
-                $this->priceCache[$assetSymbol][$baseSymbol] =  1.0 / $price;
-                $this->priceCache[$baseSymbol][$assetSymbol] = $price;
+                $this->priceCache[$assetSymbol][$baseSymbol] = 1.0/$price;
+                //echo "/n Price of ".$assetSymbol." in ".$baseSymbol." is ".(1.0/$price)."\n";
                 
+                $this->priceCache[$baseSymbol][$assetSymbol] = $price;
+                //echo "/n Price of ".$baseSymbol." in ".$assetSymbol." is ". $price."\n";
+                                
                 return (1.0 / $price);
             }
             else
             {
+                $priceSymbol = $asset->getPricesCurrency()->getSymbol();
+                if(
+                    isset($this->priceCache[$assetSymbol][$priceSymbol]) &&
+                    isset($this->priceCache[$priceSymbol][$baseSymbol])
+                ) {
+                    $this->priceCache[$assetSymbol][$baseSymbol] = 
+                        $this->priceCache[$assetSymbol][$priceSymbol]
+                        * $this->priceCache[$priceSymbol][$baseSymbol];
+
+                    return $this->priceCache[$assetSymbol][$baseSymbol];
+                }
                 $currency = $this->currencyRepo->findOneBy([
-                    'id' => $asset->getPricesCurrency()->getId(),
+                    'symbol' => $priceSymbol,
                     'pricesCurrency' => $baseCurrency
                 ]);
-                $priceSymbol = $asset->getPricesCurrency()->getSymbol();
+                
                 if($currency)
                 {
                     $price = $this->updatePrice($currency);
                     
                     $this->priceCache[$priceSymbol][$baseSymbol] =  $price;
+                    //echo "/n Price of ".$priceSymbol." in ".$baseSymbol." is ". $price." and ";
                     $this->priceCache[$baseSymbol][$priceSymbol] =  1.0 / $price;
+                    
                     $price *=$asset->getCurrentPrice();
                     $this->priceCache[$assetSymbol][$baseSymbol] = $price;
+                    //echo "price of ".$assetSymbol." in ".$baseSymbol." is ". $price."\n";
                     $this->priceCache[$baseSymbol][$assetSymbol] = 1.0 / $price;
 
                     return $price;
                 }
                 else
                 {
+                    if(
+                        isset($this->priceCache[$assetSymbol][$priceSymbol]) &&
+                        isset($this->priceCache[$baseSymbol][$priceSymbol])
+                    ) {
+                        $this->priceCache[$assetSymbol][$baseSymbol] = 
+                        $this->priceCache[$assetSymbol][$priceSymbol]
+                        / $this->priceCache[$baseSymbol][$priceSymbol];
+
+                    return $this->priceCache[$assetSymbol][$baseSymbol];
+
+                    }
                     $currency = $this->currencyRepo->findOneBy([
-                        'id' => $baseCurrency->getId(),
+                        'symbol' => $baseSymbol,
                         'pricesCurrency' => $asset->getPricesCurrency()
                     ]);
                     if($currency)
                     {
                         $price = $this->updatePrice($currency);
                         $this->priceCache[$baseSymbol][$priceSymbol] =  $price;
+                        //echo "/n Price of ".$baseSymbol." in ".$priceSymbol." is ". $price." and ";
                         $this->priceCache[$priceSymbol][$baseSymbol] =  1.0 / $price;
                     
                         $price = $asset->getCurrentPrice() / $price;
                         
                         $this->priceCache[$baseSymbol][$assetSymbol] = $price;
+                        //echo "price of ".$baseSymbol." in ".$assetSymbol." is ". $price."\n";
                         $this->priceCache[$assetSymbol][$baseSymbol] = 1.0 / $price;
 
                         return $price;

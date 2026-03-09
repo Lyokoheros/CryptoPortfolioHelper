@@ -21,14 +21,11 @@ use Symfony\Component\Serializer\SerializerInterface;
 #[Route('/user', name: 'app_user')]
 class UserController extends AbstractController
 {
-    private $repository; 
 
     public function __construct(
         //private SerializerInterface $serializer,
-        private EntityManagerInterface $entityManager
-    ) {
-        $this->repository = $this->entityManager->getRepository(User::class);
-    }
+        private UserRepository $repository
+    ) {}
 
     #[Route('/', name: 'list', methods: ['GET'])]
     public function index(): JsonResponse
@@ -68,7 +65,7 @@ class UserController extends AbstractController
         'transactions' => json_decode($serializer->serialize($transactions, 'json', ['groups' => 'transactionDetails']), true),
         'DailyExchangeRates' => json_decode($serializer->serialize($DailyExchangeRates, 'json'), true),
         'exchanges' => json_decode($serializer->serialize($exchanges, 'json', ['groups' => 'exchangeDetails']), true),
-        'currencies' => json_decode($serializer->serialize($currencies, 'json', ['groups' => 'userProfile']), true)
+        'currencies' => json_decode($serializer->serialize($currencies, 'json', ['groups' => 'currencyDetails']), true)
     ];
         
         return $this->json($database);

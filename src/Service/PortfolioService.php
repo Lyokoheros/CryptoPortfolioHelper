@@ -4,7 +4,12 @@ namespace App\Service;
 
 use App\Entity\Currency;
 use App\Entity\Portfolio;
+use App\Entity\Transaction;
+use App\Repository\CurrencyRepository;
+use App\Repository\TransactionRepository;
 use App\Service\PricesService;
+use DateTime;
+use Psr\Log\LoggerInterface;
 
 class PortfolioService
 {
@@ -17,14 +22,27 @@ class PortfolioService
 
     public function __construct(
         private CurrencyService $currencyService,
-        private AssetService $assetService
+        private AssetService $assetService,
+        private TransactionRepository $transactionRepository,
+        private CurrencyRepository $currencyRepository,
+        private LoggerInterface $logger
     ) {
         $this->avaibleParameterFunctions = array_flip($this->avaibleParameterFunctions);
     }
 
+    private function logMemory(string $label): void
+    {
+        $usage = memory_get_usage(true) / 1024 / 1024;
+        $peak = memory_get_peak_usage(true) / 1024 / 1024;
+        $this->logger->info("[$label] Current: {$usage}MB | Peak: {$peak}MB");
+    }
+
     public function getAssetValueInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = [])
-    {          
-        return $this->assetService->getAssetQuantity($asset, [$portfolio], $optionalCriteria) * $this->currencyService->getPrice($asset, $baseCurrency);
+    {   
+        $quantity = $this->assetService->getAssetQuantity($asset, [$portfolio], $optionalCriteria);
+        $price = $this->currencyService->getPrice($asset, $baseCurrency);
+        $this->logMemory($asset->getSymbol() ."quantity:". $quantity . "X price:" . $price);
+        return $quantity * $price;
     }
 
     public function getPortfolioTotalsPerCriterium(Portfolio $portfolio, Currency $baseCurrency, string $criteriumFunction, array $optionalCriteria = []): float
@@ -37,11 +55,13 @@ class PortfolioService
         $assets = $portfolio->getBoughtAssets();
         foreach($assets as $asset)
         {
-            $portfolioTotal += $this->$criteriumFunction(
+            $assetTotal = $this->$criteriumFunction(
                 $asset,
                 $portfolio,
                 $baseCurrency,
                 $optionalCriteria);
+            //$this->logMemory($asset->getSymbol() . "total value:" . $assetTotal);
+            $portfolioTotal += $assetTotal;
         }
         return $portfolioTotal;
     }
@@ -52,16 +72,38 @@ class PortfolioService
             $portfolio, 
             $baseCurrency, 
             'getAssetValueInPortfolio',
-            $optionalCriteria);
+            $optionalCriteria
+        );
     }
 
     public function getPortfolioTotalCost(Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
     {
-        return $this->getPortfolioTotalsPerCriterium(
-            $portfolio, 
-            $baseCurrency, 
-            'getAssetTotalCostInPortfolio',
-            $optionalCriteria);
+        $costs = $this->transactionRepository->getAssetsExpensesInPortfolio(
+            $portfolio,
+            $optionalCriteria
+        );
+        $totalCost = 0;
+        //print_r(count($costs));
+        
+        foreach($costs as $symbol => $values)
+        {
+            $currency = $this->currencyRepository->getCurrencyForSymbol($symbol);
+            
+            
+            if($this->currencyRepository->isInNiche($currency, 'fiat') 
+                || $this->currencyRepository->isInNiche($currency, 'stablecoins')
+            ){
+                //test
+                //var_dump($symbol);
+                //var_dump($values);
+                $totalCost += ($values['totalExpenses']+$values['feesInAsset'])
+                    * $this->currencyService->getPrice(
+                        $currency, 
+                        $baseCurrency
+                );
+            }
+        }
+        return $totalCost;
     }
 
     public function getTotalRealizedIncome(Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
@@ -73,40 +115,48 @@ class PortfolioService
             $optionalCriteria);
     }
 
-    public function getAssetCostInPortfolioPerCurrency(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
+    public function getAssetTotalCostInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
     {
-        return $this->assetService->getAssetExpenses(
-            $baseCurrency,
-            [$portfolio], 
+    //test
+        $this->logMemory("Checking cost of:".$asset->getSymbol());
+            
+        $totalCost = 0;
+        $costs = $this->assetService->getAssetsExpensesInPortfolio(
+            $portfolio,
             [
                 ...['boughtCurrency' => $asset],
                 ...$optionalCriteria
             ]
         );
-    }
-
-    public function getAssetTotalCostInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
-    {
-        $purchaseCurrencies = $this->assetService->getSoldAssets($portfolio);
-        $totalCost = 0;
-
-        foreach($purchaseCurrencies as $purchaseCurrency)
+        //test
+        //echo $asset->getSymbol();
+        //var_dump($costs);
+        
+        foreach($costs as $symbol => $values)
         {
-            if($purchaseCurrency->isInNiches(['stablecoins', 'fiat']))
-            {
-                $assetCost = $this->getAssetCostInPortfolioPerCurrency(
-                    $asset, 
-                    $portfolio, 
-                    $purchaseCurrency,
-                    $optionalCriteria
-                ) * $this->currencyService->getPrice(
-                    $purchaseCurrency, 
-                    $baseCurrency
+            $currency = $this->currencyRepository->getCurrencyForSymbol($symbol);
+
+            if($this->currencyRepository->isInNiche($currency, 'fiat') 
+                || $this->currencyRepository->isInNiche($currency, 'stablecoins')
+            ){
+                $value = ($values['totalExpenses']+$values['feesInAsset']);
+                $price = $this->currencyService->getPrice(
+                        $currency, 
+                        $baseCurrency
                 );
+                /*/test
+                $this->logMemory("For ".$asset->getSymbol()." paid: ". $value
+                    ." of " . $symbol ." at ". $price 
+                    ." rate to". $baseCurrency->getSymbol()
+                );
+                */
+                $assetCost = $value*$price;
                 $totalCost += $assetCost;    
             }
         }
-        return $totalCost;        
+
+        return $totalCost;
+                  
     }
 
     public function getAssetAvgPriceInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
@@ -134,7 +184,7 @@ class PortfolioService
     public function getAssetsRealizedIncomeInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
     {
         $income = 0;
-        $sellCurrencies = $this->assetService->getSoldAssets($portfolio);
+        $sellCurrencies = $portfolio->getSoldAssets();
         foreach($sellCurrencies as $sellCurrency)
         {
             if($sellCurrency->isInNiches(['stablecoins', 'fiat']))

@@ -16,28 +16,28 @@ class TransactionBatch
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['portfolioView', 'transactionBatchList'])]
+    #[Groups(['transactionBatchList'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['portfolioView', 'transactionBatchList', 'transactionDetails'])]
+    #[Groups(['transactionBatchList', 'transactionDetails'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    #[Groups(['portfolioView', 'transactionBatchList'])]
+    #[Groups(['transactionBatchList'])]
     private ?\DateTimeInterface $date = null;
 
     #[ORM\Column]
-    #[Groups(['portfolioView', 'transactionBatchList'])]
+    #[Groups(['transactionBatchList'])]
     private ?int $ordinalNumber = null;
 
     #[ORM\Column(length: 15)]
-    #[Groups(['portfolioView', 'transactionBatchList'])]
+    #[Groups(['transactionBatchList'])]
 
     private ?string $type = null;
 
     #[ORM\Column]
-    #[Groups(['portfolioView', 'transactionBatchList'])]
+    #[Groups(['transactionBatchList'])]
     private ?bool $finished = null;
 
     /**
@@ -51,7 +51,10 @@ class TransactionBatch
     #[Groups(['transactionBatchList'])]
     private Collection $transactions;
 
-    #[ORM\ManyToOne(inversedBy: 'TransactionBatches')]
+    #[ORM\ManyToOne(
+        inversedBy: 'TransactionBatches', 
+        fetch: 'LAZY'
+    )]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['transactionBatchList'])]
     private ?Portfolio $portfolio = null;

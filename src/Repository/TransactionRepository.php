@@ -9,27 +9,44 @@ use App\Entity\Transaction;
 use App\Entity\TransactionBatch;
 use DateTime;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
 
 /**
  * @extends EnhancedEntityRepository<Transaction>
  */
 class TransactionRepository extends EnhancedEntityRepository
 {
-    private $batchRepository;
-    private $currencyRepository;
-    private $exchangeRepository;
     private ?DateTime $lastCacheRefresh = null;
-    private string $updateFrequency = '10 minutes';
+    private string $updateFrequency = '20 minutes';
     private array $assetCache = [];
     //Structure: $assetCache[$type][$portoflioId][$criteriaKey][$symbol]
     //available types: ['income','expenses']
+    private $associationFields = [
+        'boughtCurrency',
+        'soldCurrency',
+        'feeCurrency',
+        'transactionBatch'
+    ];
+        
+        
     
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(
+        ManagerRegistry $registry,
+        private TransactionBatchRepository $batchRepository,
+        private CurrencyRepository $currencyRepository,
+        private ExchangeRepository $exchangeRepository,
+        private LoggerInterface $logger
+    )
     {
         parent::__construct($registry);
-        $this->batchRepository = $this->entityManager->getRepository(TransactionBatch::class);
-        $this->currencyRepository = $this->entityManager->getRepository(Currency::class);
-        $this->exchangeRepository = $this->entityManager->getRepository(Exchange::class);
+        $this->associationFields = array_flip($this->associationFields);
+    }
+
+    private function logMemory(string $label): void
+    {
+        $usage = memory_get_usage(true) / 1024 / 1024;
+        $peak = memory_get_peak_usage(true) / 1024 / 1024;
+        $this->logger->info("[$label] Current: {$usage}MB | Peak: {$peak}MB");
     }
 
     public function addTransaction($transactionData): void
@@ -174,8 +191,24 @@ class TransactionRepository extends EnhancedEntityRepository
     private function getCriteriaKey(array $optionalCriteria): string
     {
         // Create unique key based on criteria
-        $criteriaKey = md5(json_encode($optionalCriteria));
-        return $criteriaKey;
+        $criteriaKey = [];
+        foreach($optionalCriteria as $key => $value)
+        {
+            $criteriaKey[] = $key ."->". $value;            
+        }
+        sort($criteriaKey);
+        //$criteriaKey = md5(json_encode($optionalCriteria));
+        if($criteriaKey == [])
+        {
+            return 'none';
+        }
+        else
+        {
+            return implode('|', $criteriaKey);
+        }
+
+            
+
     }
 
     /**
@@ -198,7 +231,7 @@ class TransactionRepository extends EnhancedEntityRepository
             $incomes = 0;
             if(isset($this->assetCache['income'][$portoflioId][$criteriaKey][$symbol]))
             {
-                $incomes = $this->assetCache['income'][$portoflioId][$criteriaKey][$symbol];
+                $incomes = $this->assetCache['income'][$portoflioId][$criteriaKey];
             }
             else
             {
@@ -206,15 +239,23 @@ class TransactionRepository extends EnhancedEntityRepository
                     $portfolio, 
                     $optionalCriteria
                 );
-                $this->assetCache['income'][$portoflioId][$criteriaKey][$symbol] = $incomes;
-            }
-            
+                $this->assetCache['income'][$portoflioId][$criteriaKey] = $incomes;
+                /*foreach($this->assetCache['income'][$portoflioId][$criteriaKey] as $key => $value)
+                {
+                    $this->logMemory($key 
+                        . " income:" . $value['totalIncome']
+                        . " fees(-):"  . $value['feesInAsset']
+                    );
+                }*/
+                
+            }            
             if(isset($incomes[$symbol]))
             {
                 $incomeTotal +=  $incomes[$symbol]['totalIncome']
-                    - $incomes[$symbol]['feesInAsset'];  
+                    - $incomes[$symbol]['feesInAsset'];
             }
-        }       
+        }    
+        //echo $symbol ."|". $incomeTotal . "<br>\n";
 
         return $incomeTotal;
     }
@@ -254,8 +295,7 @@ class TransactionRepository extends EnhancedEntityRepository
             {
                 $expensesTotal +=  $expenses[$symbol]['totalExpenses']
                     - $expenses[$symbol]['feesInAsset'];  
-            }
-                
+            }                
         }       
 
         return $expensesTotal;
@@ -294,7 +334,7 @@ class TransactionRepository extends EnhancedEntityRepository
         foreach ($optionalCriteria as $field => $value) 
         {
             // if someone filters on an association, compare its id
-            if (isset($associationFields[$field]))
+            if (isset($this->associationFields[$field]))
             {
                 $qb->andWhere("IDENTITY(t.$field) = :$field");
             }
@@ -308,13 +348,15 @@ class TransactionRepository extends EnhancedEntityRepository
         $results = $qb->getQuery()->getResult();
 
         $indexed = [];
-        foreach ($results as $row) {
+        foreach ($results as $row) 
+        {
             $symbol = $row['assetSymbol'];
             $indexed[$symbol] = [
                 'totalIncome' => $row['totalIncome'] ?? 0,
                 'feesInAsset' => $row['feesInAsset'] ?? 0,
             ];
         }
+        //var_dump($indexed);
         $this->assetCache['income'][$portfolioId][$criteriaKey] = $indexed;
 
         return $indexed;
@@ -326,8 +368,8 @@ class TransactionRepository extends EnhancedEntityRepository
         $criteriaKey = $this->getCriteriaKey($optionalCriteria);
         $this->checkAssetCache();
         $portfolioId = $portfolio->getId();
-        $associationFields = ['boughtCurrency', 'soldCurrency', 'feeCurrency', 'transactionBatch'];
-        $associationFields = array_flip($associationFields);
+        //test
+        $this->logMemory("Currency Choosen:" .($optionalCriteria['boughtCurrency'] ?? "all"). " CODE: " . $criteriaKey);
         if (isset($this->assetCache['expenses'][$portfolioId][$criteriaKey])) 
         {
             return $this->assetCache['expenses'][$portfolioId][$criteriaKey];
@@ -354,7 +396,77 @@ class TransactionRepository extends EnhancedEntityRepository
         foreach ($optionalCriteria as $field => $value) 
         {
             // if someone filters on an association, compare its id
-            if (isset($associationFields[$field]))
+            if (isset($this->associationFields[$field]))
+            {
+                $qb->andWhere("IDENTITY(t.$field) = :$field");
+            }
+            else
+            {
+                $qb->andWhere("t.$field = :$field");
+            }
+            $qb->setParameter($field, $value);
+        //test            
+            $this->logMemory("option:". $field ."|". $value."\n");
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        $indexed = [];
+        foreach ($results as $row) {
+            $symbol = $row['assetSymbol'];
+            $indexed[$symbol] = [
+                'totalExpenses' => $row['totalExpenses'] ?? 0,
+                'feesInAsset' => $row['feesInAsset'] ?? 0,
+            ];
+            //test
+            $this->logMemory("spend: ".(($row['totalExpenses'] ?? 0)
+                + ($row['feesInAsset'] ?? 0)) ." of ". $symbol ." for "
+                . ($optionalCriteria['boughtCurrency'] ?? "all")
+                ."\n");
+        }
+        //test
+        $this->logMemory("QUERY FINISHED");
+        
+        //echo "database retrieved expenses";
+        //var_dump($indexed);
+        $this->assetCache['expenses'][$portfolioId][$criteriaKey] = $indexed;
+
+        return $indexed;
+    }
+
+    public function getCostsInPortfolio(Currency $asset, Portfolio $portfolio, $optionalCriteria = []): array
+    {
+        $criteriaKey = $this->getCriteriaKey($optionalCriteria);
+        $this->checkAssetCache();
+        $portfolioId = $portfolio->getId();
+        
+        if (isset($this->assetCache['costs'][$portfolioId][$criteriaKey])) 
+        {
+            return $this->assetCache['costs'][$portfolioId][$criteriaKey];
+        }
+
+        $qb = $this->createQueryBuilder('t')
+            // join the currency so we can group by a real field
+            ->leftJoin('t.soldCurrency', 'sc')
+            ->leftJoin('t.transactionBatch', 'tb')
+            ->select('
+                sc.symbol AS assetSymbol,
+                SUM(t.sellValue) AS totalExpenses,
+                SUM(
+                    CASE WHEN IDENTITY(t.feeCurrency) = IDENTITY(t.soldCurrency)
+                        THEN t.fee ELSE 0 END
+                ) AS feesInAsset
+            ')
+//            ->addSelect('t.id AS dummyID') //to satisfy parser
+            ->where('tb.portfolio = :portfolio')
+            ->andWhere('sc IS NOT NULL')
+            ->setParameter('portfolio', $portfolio)
+            ->groupBy('sc.id');
+
+        foreach ($optionalCriteria as $field => $value) 
+        {
+            // if someone filters on an association, compare its id
+            if (isset($this->associationFields[$field]))
             {
                 $qb->andWhere("IDENTITY(t.$field) = :$field");
             }
@@ -371,12 +483,15 @@ class TransactionRepository extends EnhancedEntityRepository
         foreach ($results as $row) {
             $symbol = $row['assetSymbol'];
             $indexed[$symbol] = [
-                'totalExpenses' => $row['totalExpenses'] ?? 0,
+                'totalCosts' => $row['totalExpenses'] ?? 0,
                 'feesInAsset' => $row['feesInAsset'] ?? 0,
             ];
         }
-        $this->assetCache['expenses'][$portfolioId][$criteriaKey] = $indexed;
+        var_dump($indexed);
+        $this->assetCache['costs'][$portfolioId][$criteriaKey][$asset->getSymbol()] = $indexed;
 
         return $indexed;
     }
+
+
 }

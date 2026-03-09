@@ -48,7 +48,6 @@ class Portfolio
         mappedBy: 'portfolio',
         fetch: 'LAZY'
     )]
-    #[Groups(['portfolioView'])]
     private Collection $transactionBatches;
 
     #[ORM\Column]

@@ -11,7 +11,6 @@ class StructureService
         'getAssetCostInPortfolioPerCurrency',
         'getAssetTotalCostInPortfolio',
         'getAssetsRealizedIncomeInPortfolio',
-        'getSoldOutPercentageInPortfolio'
     ];
 
     public function __construct(
@@ -41,7 +40,8 @@ class StructureService
                     $portfolio, 
                     $baseCurrency, 
                     $optionalCriteria
-                );
+                ); 
+                //echo $asset->getSymbol() . $assetValue ."\n";
                 $structure[$asset->getSymbol()]['value'] = ($structure[$asset->getSymbol()] ?? 0) 
                         + $assetValue;
                 $totalValue += $assetValue;
@@ -86,13 +86,24 @@ class StructureService
         );
     }
 
-    public function getSoldOutStructure(array $portfolios, Currency $baseCurrency, $optionalCriteria = []): array
+    public function getSoldOutStructure(array $portfolios, $optionalCriteria = []): array
     {
-        return $this->getAssetStructurePerParameter(
-            $portfolios,
-            $baseCurrency,
-            'getSoldOutPercentageInPortfolio',
-            $optionalCriteria
-        );
+        $soldOut = [];
+        foreach($portfolios as $portfolio)
+        {
+            $assets = $portfolio->getBoughtAssets();
+            $portfolioSoldOut = [];
+            foreach($assets as $asset)
+            {
+                $percentage = $this->portfolioService->getSoldOutPercentageInPortfolio(
+                    $asset,
+                    $portfolio,  
+                    $optionalCriteria
+                );
+                $portfolioSoldOut[$asset->getSymbol()] = $percentage;
+            }
+            $soldOut[$portfolio->getName()] = $portfolioSoldOut;
+        }
+        return $soldOut;
     }
 }

@@ -8,6 +8,7 @@ use App\Service\AssetService;
 use App\Service\CryptoApi\CoinGeckoApi;
 use App\Service\ReportingService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,8 +26,16 @@ final class ReportController extends AbstractController
         private CurrencyRepository $currencyRepository,
         //for testing
         private CoinGeckoApi $coingeckoApi,
-        private AssetService $assetService
+        private AssetService $assetService,
+        private LoggerInterface $logger
     ) {}
+
+    private function logMemory(string $label): void
+    {
+        $usage = memory_get_usage(true) / 1024 / 1024;
+        $peak = memory_get_peak_usage(true) / 1024 / 1024;
+        $this->logger->info("[$label] Current: {$usage}MB | Peak: {$peak}MB");
+    }
 
     #[Route('/', name: 'index')]
     public function index(): JsonResponse
@@ -49,21 +58,29 @@ final class ReportController extends AbstractController
     #[Route('/value/{id<\d+>}', name: 'get_portfolio_value_summary', methods: ['GET'])]
     public function getPortfolioValueReportById(Portfolio $portfolio, Request $request): JsonResponse
     {
+        $this->logMemory("endpoint start");
         $currency = $this->currencyRepository->findOneBy(['symbol' => $request->get('inCurrency')]);
-        return $this->json($this->service->getPortfolioValueSummary(
+        $this->logMemory("currency found");
+        $data = $this->service->getPortfolioValueSummary(
             $portfolio,
             $currency
-        ));
+        );
+        $this->logMemory("endpoint end");
+        return $this->json($data);
     }
 
     #[Route('/cost/{id<\d+>}', name: 'get_portfolio_cost_summary', methods: ['GET'])]
     public function getPortfolioCostReportById(Portfolio $portfolio, Request $request): JsonResponse
     {
+        $this->logMemory("endpoint start");
         $currency = $this->currencyRepository->findOneBy(['symbol' => $request->get('inCurrency')]);
-        return $this->json($this->service->getPortfolioCostSummary(
+        $this->logMemory("currency found: " . $currency);
+        $data = $this->service->getPortfolioCostSummary(
             $portfolio, 
             $currency
-        ));
+        );
+        $this->logMemory("endpoint end");
+        return $this->json($data);
     }
 
     #[Route('/coins/{id<\d+>}', name: 'get_portfolio_coins_summary', methods: ['GET'])]
