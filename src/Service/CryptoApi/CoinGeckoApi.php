@@ -105,15 +105,13 @@ class CoinGeckoApi implements CryptoApiProviderInterface
         ]);
         
         $data = $response->toArray();
-        //return ['data' => $data,'ids' => $ids];
 
         foreach($currencies as $currency)
         {
             $coinGeckoId = self::COIN_GECKO_IDS[$currency->getSymbol()];
             $prices[$currency->getSymbol()] = $data[$coinGeckoId][$priceCurrency];
         }
-
-        
+       
         return $prices;
     }
     

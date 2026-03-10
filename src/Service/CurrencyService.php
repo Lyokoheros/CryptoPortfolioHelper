@@ -89,10 +89,6 @@ class CurrencyService
             if($this->shouldUpdatePrice($currency))
             {
                 $prices = $this->coinGecko->getCryptoPrices($currencies);
-                //test
-                //echo "new prices";
-                //var_dump($prices);
-                //echo "updating prices\n";
                 $assets = $currencies;
                 
                 foreach($assets as $currency)
@@ -146,10 +142,7 @@ class CurrencyService
             return $this->priceCache[$assetSymbol][$baseSymbol];
         }
         $this->updatePrice($asset);
-            //test
-            //echo "\nprice cache \n";
-            //var_dump($this->priceCache);
-
+            
         $currency = $this->currencyRepo->findOneBy([
             'symbol' => $assetSymbol,
             'pricesCurrency' => $baseCurrency
@@ -160,8 +153,6 @@ class CurrencyService
             $this->updatePrice($currency);
             $price = $currency->getCurrentPrice();
             $this->priceCache[$assetSymbol][$baseSymbol] = $price;
-            //test  
-            //echo "/n Price of ".$assetSymbol." in ".$baseSymbol." is ".$price."\n";
             $this->priceCache[$baseSymbol][$assetSymbol] = 1.0 / $price;
             return $price;
         }
@@ -180,11 +171,8 @@ class CurrencyService
             if($currency)
             {
                 $price = $this->updatePrice($currency);
-                $this->priceCache[$assetSymbol][$baseSymbol] = 1.0/$price;
-                //echo "/n Price of ".$assetSymbol." in ".$baseSymbol." is ".(1.0/$price)."\n";
-                
+                $this->priceCache[$assetSymbol][$baseSymbol] = 1.0/$price;                
                 $this->priceCache[$baseSymbol][$assetSymbol] = $price;
-                //echo "/n Price of ".$baseSymbol." in ".$assetSymbol." is ". $price."\n";
                                 
                 return (1.0 / $price);
             }
@@ -211,12 +199,10 @@ class CurrencyService
                     $price = $this->updatePrice($currency);
                     
                     $this->priceCache[$priceSymbol][$baseSymbol] =  $price;
-                    //echo "/n Price of ".$priceSymbol." in ".$baseSymbol." is ". $price." and ";
                     $this->priceCache[$baseSymbol][$priceSymbol] =  1.0 / $price;
                     
                     $price *=$asset->getCurrentPrice();
                     $this->priceCache[$assetSymbol][$baseSymbol] = $price;
-                    //echo "price of ".$assetSymbol." in ".$baseSymbol." is ". $price."\n";
                     $this->priceCache[$baseSymbol][$assetSymbol] = 1.0 / $price;
 
                     return $price;
@@ -242,13 +228,10 @@ class CurrencyService
                     {
                         $price = $this->updatePrice($currency);
                         $this->priceCache[$baseSymbol][$priceSymbol] =  $price;
-                        //echo "/n Price of ".$baseSymbol." in ".$priceSymbol." is ". $price." and ";
                         $this->priceCache[$priceSymbol][$baseSymbol] =  1.0 / $price;
                     
                         $price = $asset->getCurrentPrice() / $price;
-                        
                         $this->priceCache[$baseSymbol][$assetSymbol] = $price;
-                        //echo "price of ".$baseSymbol." in ".$assetSymbol." is ". $price."\n";
                         $this->priceCache[$assetSymbol][$baseSymbol] = 1.0 / $price;
 
                         return $price;

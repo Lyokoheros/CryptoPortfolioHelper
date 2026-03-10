@@ -4,11 +4,8 @@ namespace App\Service;
 
 use App\Entity\Currency;
 use App\Entity\Portfolio;
-use App\Entity\Transaction;
 use App\Repository\CurrencyRepository;
 use App\Repository\TransactionRepository;
-use App\Service\PricesService;
-use DateTime;
 use Psr\Log\LoggerInterface;
 
 class PortfolioService
@@ -60,7 +57,6 @@ class PortfolioService
                 $portfolio,
                 $baseCurrency,
                 $optionalCriteria);
-            //$this->logMemory($asset->getSymbol() . "total value:" . $assetTotal);
             $portfolioTotal += $assetTotal;
         }
         return $portfolioTotal;
@@ -83,7 +79,6 @@ class PortfolioService
             $optionalCriteria
         );
         $totalCost = 0;
-        //print_r(count($costs));
         
         foreach($costs as $symbol => $values)
         {
@@ -93,9 +88,6 @@ class PortfolioService
             if($this->currencyRepository->isInNiche($currency, 'fiat') 
                 || $this->currencyRepository->isInNiche($currency, 'stablecoins')
             ){
-                //test
-                //var_dump($symbol);
-                //var_dump($values);
                 $totalCost += ($values['totalExpenses']+$values['feesInAsset'])
                     * $this->currencyService->getPrice(
                         $currency, 
@@ -117,9 +109,6 @@ class PortfolioService
 
     public function getAssetTotalCostInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = []): float
     {
-    //test
-        $this->logMemory("Checking cost of:".$asset->getSymbol());
-            
         $totalCost = 0;
         $costs = $this->assetService->getAssetsExpensesInPortfolio(
             $portfolio,
@@ -128,9 +117,6 @@ class PortfolioService
                 ...$optionalCriteria
             ]
         );
-        //test
-        //echo $asset->getSymbol();
-        //var_dump($costs);
         
         foreach($costs as $symbol => $values)
         {
@@ -144,12 +130,6 @@ class PortfolioService
                         $currency, 
                         $baseCurrency
                 );
-                /*/test
-                $this->logMemory("For ".$asset->getSymbol()." paid: ". $value
-                    ." of " . $symbol ." at ". $price 
-                    ." rate to". $baseCurrency->getSymbol()
-                );
-                */
                 $assetCost = $value*$price;
                 $totalCost += $assetCost;    
             }

@@ -197,7 +197,6 @@ class TransactionRepository extends EnhancedEntityRepository
             $criteriaKey[] = $key ."->". $value;            
         }
         sort($criteriaKey);
-        //$criteriaKey = md5(json_encode($optionalCriteria));
         if($criteriaKey == [])
         {
             return 'none';

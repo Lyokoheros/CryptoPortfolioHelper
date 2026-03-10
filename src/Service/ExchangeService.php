@@ -2,11 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Currency;
-use App\Entity\Exchange;
-use App\Entity\Portfolio;
-use App\Entity\Transaction;
-use App\Entity\TransactionBatch;
 use App\Entity\User;
 use App\Repository\ExchangeRepository;
 use Symfony\Component\DependencyInjection\ServiceLocator;

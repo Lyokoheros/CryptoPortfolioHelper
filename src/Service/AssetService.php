@@ -4,15 +4,11 @@ namespace App\Service;
 
 use App\Entity\Currency;
 use App\Entity\Portfolio;
-use App\Repository\CurrencyRepository;
-use App\Repository\TransactionBatchRepository;
 use App\Repository\TransactionRepository;
 
 class AssetService
 {
     public function __construct(
-        private CurrencyRepository $currencyRepository,
-        private TransactionBatchRepository $transactionBatchRepository,
         private TransactionRepository $transactionRepository
     ) {}
 

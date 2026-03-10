@@ -14,7 +14,6 @@ class StructureService
     ];
 
     public function __construct(
-        private AssetService $assetService,
         private PortfolioService $portfolioService
     ) {
         $this->avaibleParameterFunctions = array_flip($this->avaibleParameterFunctions);
@@ -41,7 +40,6 @@ class StructureService
                     $baseCurrency, 
                     $optionalCriteria
                 ); 
-                //echo $asset->getSymbol() . $assetValue ."\n";
                 $structure[$asset->getSymbol()]['value'] = ($structure[$asset->getSymbol()] ?? 0) 
                         + $assetValue;
                 $totalValue += $assetValue;

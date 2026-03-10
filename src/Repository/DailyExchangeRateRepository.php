@@ -10,12 +10,11 @@ use Doctrine\Persistence\ManagerRegistry;
  * @extends EnhancedEntityRepository<DailyExchangeRate>
  */
 class DailyExchangeRateRepository extends EnhancedEntityRepository
-{
-    private $currencyRepository;
-    
-    public function __construct(ManagerRegistry $registry)
-    {
-        $this->currencyRepository = $registry->getManager()->getRepository(Currency::class);
+{  
+    public function __construct(
+        ManagerRegistry $registry,
+        private CurrencyRepository $currencyRepository
+    ) {
         parent::__construct($registry);
     }
 

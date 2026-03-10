@@ -11,12 +11,13 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TransactionBatchRepository extends EnhancedEntityRepository
 {
-    private $portfoliorepo;
+    
 
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private PortfolioRepository $portfolioRepo
+    ) {
         parent::__construct($registry);
-        $this->portfoliorepo = $this->entityManager->getRepository(Portfolio::class);
     }
 
 
@@ -53,7 +54,7 @@ class TransactionBatchRepository extends EnhancedEntityRepository
 
         if(isset($transactionBatchData['portfolioId']))
         {
-            $portfolio = $this->portfoliorepo->find($transactionBatchData['portfolioId']);
+            $portfolio = $this->portfolioRepo->find($transactionBatchData['portfolioId']);
             $transactionBatch->setPortfolio($portfolio);
         }
         if(isset($transactionBatchData['date']))
