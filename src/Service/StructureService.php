@@ -50,6 +50,8 @@ class StructureService
         {
             $structure[$assetSymbol]['percentage'] = $totalValue > 0 ? ($data['value'] / $totalValue) * 100 : 0;
         }        
+
+        uasort($structure, fn($a, $b) => $b['percentage'] <=> $a['percentage']);
         
        return $structure;
     }

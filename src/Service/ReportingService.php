@@ -32,7 +32,6 @@ class ReportingService
                 $portfolio,
                 $baseCurrency
             );
-        
         $valueStructure = $this->structureService->getAssetValueStructure(
                 [$portfolio],
                 $baseCurrency
@@ -111,6 +110,12 @@ class ReportingService
             'coinsStatistics' => $this->portfolioService->getAllAssetsStatInPortfolio(
                 $portfolio,
                 $baseCurrency
+            ),
+            'buyTransactions' => $this->portfolioService->getBuyTransactionNumbers(
+                $portfolio
+            ),
+            'sellTransactions' => $this->portfolioService->getSellTransactionNumbers(
+                $portfolio
             ),
             'portfolioTopPerformer' => $this->portfolioService->getTopPerformer(
                 $portfolio,

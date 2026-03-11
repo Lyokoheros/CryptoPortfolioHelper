@@ -287,4 +287,22 @@ class PortfolioService
         return $bottomPerformer;
     }
 
+    public function getBuyTransactionNumbers(Portfolio $portfolio, array $optionalCriteria = []): array
+    {
+        $transactions = $this->transactionRepository->getBuyTransactionCounts($portfolio, $optionalCriteria);
+        
+        uasort($transactions, fn($a, $b) => $b['percentage'] <=> $a['percentage']);
+        
+        return $transactions;
+    }
+
+    public function getSellTransactionNumbers(Portfolio $portfolio, array $optionalCriteria = []): array
+    {
+        $transactions = $this->transactionRepository->getSellTransactionCounts($portfolio, $optionalCriteria);
+        
+        uasort($transactions, fn($a, $b) => $b['percentage'] <=> $a['percentage']);
+        
+        return $transactions;
+    }
+
 }

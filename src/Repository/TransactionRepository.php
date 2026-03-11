@@ -19,8 +19,13 @@ class TransactionRepository extends EnhancedEntityRepository
     private ?DateTime $lastCacheRefresh = null;
     private string $updateFrequency = '20 minutes';
     private array $assetCache = [];
-    //Structure: $assetCache[$type][$portoflioId][$criteriaKey][$symbol]
-    //available types: ['income','expenses']
+    //Structure: $assetCache[$category][$portoflioId][$criteriaKey][$symbol]
+    private array $cachedDataCategories = [
+        'income',
+        'expenses',
+        'buyTransactions',
+        'sellTransactions'
+    ];
     private $associationFields = [
         'boughtCurrency',
         'soldCurrency',
@@ -188,6 +193,15 @@ class TransactionRepository extends EnhancedEntityRepository
         }
     }
 
+    public function resetPortfolioCache(Portfolio $portfolio): void
+    {
+        $portfolioId = $portfolio->getId();
+        foreach($this->cachedDataCategories as $category)
+        {
+            $this->assetCache[$category][$portfolioId] = [];
+        }
+    }
+
     private function getCriteriaKey(array $optionalCriteria): string
     {
         // Create unique key based on criteria
@@ -204,10 +218,7 @@ class TransactionRepository extends EnhancedEntityRepository
         else
         {
             return implode('|', $criteriaKey);
-        }
-
-            
-
+        }          
     }
 
     /**
@@ -238,15 +249,7 @@ class TransactionRepository extends EnhancedEntityRepository
                     $portfolio, 
                     $optionalCriteria
                 );
-                $this->assetCache['income'][$portoflioId][$criteriaKey] = $incomes;
-                /*foreach($this->assetCache['income'][$portoflioId][$criteriaKey] as $key => $value)
-                {
-                    $this->logMemory($key 
-                        . " income:" . $value['totalIncome']
-                        . " fees(-):"  . $value['feesInAsset']
-                    );
-                }*/
-                
+                $this->assetCache['income'][$portoflioId][$criteriaKey] = $incomes;                
             }            
             if(isset($incomes[$symbol]))
             {
@@ -298,6 +301,69 @@ class TransactionRepository extends EnhancedEntityRepository
         }       
 
         return $expensesTotal;
+    }
+
+    public function getAssetTransactionNumber(
+        Currency $asset,
+        array $portfolios,
+        string $type = "BUY",
+        array $optionalCriteria = []
+    ): float
+    {
+        $type = strtoupper($type);
+        if($type !== "BUY" && $type !== "SELL" && $type !== "BOTH")
+        {
+            throw new \RuntimeException('Wrong transaction type. Must be one of: BUY, SELL or BOTH(case insensitive)');
+        }
+        $transactionsTotal = 0;
+        $criteriaKey = $this->getCriteriaKey($optionalCriteria);
+        $this->checkAssetCache();
+        $symbol = $asset->getSymbol();
+
+        foreach($portfolios as $portfolio)
+        {
+            $portoflioId = $portfolio->getId();
+            $transactions = 0;
+            
+            if($type == "BUY" || "BOTH")
+            {
+                if(isset($this->assetCache['buyTransactions'][$portoflioId][$criteriaKey][$symbol]))
+                {
+                    $transactions = $this->assetCache['buyTransactions'][$portoflioId][$criteriaKey][$symbol];
+                }
+                else
+                {
+                    $transactions = $this->getBuyTransactionCounts(
+                    $portfolio, 
+                    $optionalCriteria
+                    );
+                    $this->assetCache['buyTransactions'][$portoflioId][$criteriaKey] = $transactions;
+                    $transactions = $transactions[$symbol];
+                }
+                $transactionsTotal += $transactions;
+            }
+
+            if($type == "SELL" || "BOTH")
+            {
+                if(isset($this->assetCache['sellTransactions'][$portoflioId][$criteriaKey][$symbol]))
+                {
+                    $transactions = $this->assetCache['sellTransactions'][$portoflioId][$criteriaKey][$symbol];
+                }
+                else
+                {
+                    $transactions = $this->getSellTransactionCounts(
+                    $portfolio, 
+                    $optionalCriteria
+                    );
+                    $this->assetCache['sellTransactions'][$portoflioId][$criteriaKey] = $transactions;
+                    $transactions = $transactions[$symbol];
+                }
+                $transactionsTotal += $transactions;
+            }
+                      
+        }       
+
+        return $transactionsTotal;
     }
 
     public function getAssetsIncomeInPortfolio(Portfolio $portfolio, $optionalCriteria = []): array
@@ -386,7 +452,6 @@ class TransactionRepository extends EnhancedEntityRepository
                         THEN t.fee ELSE 0 END
                 ) AS feesInAsset
             ')
-//            ->addSelect('t.id AS dummyID') //to satisfy parser
             ->where('tb.portfolio = :portfolio')
             ->andWhere('sc IS NOT NULL')
             ->setParameter('portfolio', $portfolio)
@@ -404,8 +469,6 @@ class TransactionRepository extends EnhancedEntityRepository
                 $qb->andWhere("t.$field = :$field");
             }
             $qb->setParameter($field, $value);
-        //test            
-            $this->logMemory("option:". $field ."|". $value."\n");
         }
 
         $results = $qb->getQuery()->getResult();
@@ -417,50 +480,37 @@ class TransactionRepository extends EnhancedEntityRepository
                 'totalExpenses' => $row['totalExpenses'] ?? 0,
                 'feesInAsset' => $row['feesInAsset'] ?? 0,
             ];
-            //test
-            $this->logMemory("spend: ".(($row['totalExpenses'] ?? 0)
-                + ($row['feesInAsset'] ?? 0)) ." of ". $symbol ." for "
-                . ($optionalCriteria['boughtCurrency'] ?? "all")
-                ."\n");
+
         }
-        //test
-        $this->logMemory("QUERY FINISHED");
-        
-        //echo "database retrieved expenses";
-        //var_dump($indexed);
         $this->assetCache['expenses'][$portfolioId][$criteriaKey] = $indexed;
 
         return $indexed;
     }
 
-    public function getCostsInPortfolio(Currency $asset, Portfolio $portfolio, $optionalCriteria = []): array
+    public function getBuyTransactionCounts(Portfolio $portfolio, $optionalCriteria = []): array
     {
         $criteriaKey = $this->getCriteriaKey($optionalCriteria);
         $this->checkAssetCache();
         $portfolioId = $portfolio->getId();
         
-        if (isset($this->assetCache['costs'][$portfolioId][$criteriaKey])) 
+        if (isset($this->assetCache['buyTransactions'][$portfolioId][$criteriaKey])) 
         {
-            return $this->assetCache['costs'][$portfolioId][$criteriaKey];
+            return $this->assetCache['buyTransactions'][$portfolioId][$criteriaKey];
         }
 
         $qb = $this->createQueryBuilder('t')
             // join the currency so we can group by a real field
-            ->leftJoin('t.soldCurrency', 'sc')
+            ->leftJoin('t.boughtCurrency', 'sc')
             ->leftJoin('t.transactionBatch', 'tb')
             ->select('
                 sc.symbol AS assetSymbol,
-                SUM(t.sellValue) AS totalExpenses,
-                SUM(
-                    CASE WHEN IDENTITY(t.feeCurrency) = IDENTITY(t.soldCurrency)
-                        THEN t.fee ELSE 0 END
-                ) AS feesInAsset
+                COUNT(t.id) AS transactionsNumber
             ')
 //            ->addSelect('t.id AS dummyID') //to satisfy parser
             ->where('tb.portfolio = :portfolio')
             ->andWhere('sc IS NOT NULL')
             ->setParameter('portfolio', $portfolio)
-            ->groupBy('sc.id');
+            ->groupBy('sc.symbol');
 
         foreach ($optionalCriteria as $field => $value) 
         {
@@ -479,15 +529,72 @@ class TransactionRepository extends EnhancedEntityRepository
         $results = $qb->getQuery()->getResult();
 
         $indexed = [];
+        $total = 0;
         foreach ($results as $row) {
             $symbol = $row['assetSymbol'];
             $indexed[$symbol] = [
-                'totalCosts' => $row['totalExpenses'] ?? 0,
-                'feesInAsset' => $row['feesInAsset'] ?? 0,
-            ];
+                'transactions' => $row['transactionsNumber'] ?? 0
+            ]; $total +=$row['transactionsNumber'] ?? 0;
         }
-        var_dump($indexed);
-        $this->assetCache['costs'][$portfolioId][$criteriaKey][$asset->getSymbol()] = $indexed;
+        $indexed['total'] = $total;
+
+        $this->assetCache['buyTransactions'][$portfolioId][$criteriaKey] = $indexed;
+
+        return $indexed;
+    }
+
+    public function getSellTransactionCounts(Portfolio $portfolio, $optionalCriteria = []): array
+    {
+        $criteriaKey = $this->getCriteriaKey($optionalCriteria);
+        $this->checkAssetCache();
+        $portfolioId = $portfolio->getId();
+        
+        if (isset($this->assetCache['sellTransactions'][$portfolioId][$criteriaKey])) 
+        {
+            return $this->assetCache['selltransactions'][$portfolioId][$criteriaKey];
+        }
+
+        $qb = $this->createQueryBuilder('t')
+            // join the currency so we can group by a real field
+            ->leftJoin('t.soldCurrency', 'sc')
+            ->leftJoin('t.transactionBatch', 'tb')
+            ->select('
+                sc.symbol AS assetSymbol,
+                COUNT(t.id) AS transactionsNumber 
+            ')
+            ->where('tb.portfolio = :portfolio')
+            ->andWhere('sc IS NOT NULL')
+            ->setParameter('portfolio', $portfolio)
+            ->groupBy('sc.symbol');
+
+        foreach ($optionalCriteria as $field => $value) 
+        {
+            // if someone filters on an association, compare its id
+            if (isset($this->associationFields[$field]))
+            {
+                $qb->andWhere("IDENTITY(t.$field) = :$field");
+            }
+            else
+            {
+                $qb->andWhere("t.$field = :$field");
+            }
+            $qb->setParameter($field, $value);
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        $indexed = [];
+        $total = 0;
+        foreach ($results as $row) {
+            $symbol = $row['assetSymbol'];
+            $indexed[$symbol] = [
+                'transactions' => $row['transactionsNumber'] ?? 0
+            ];
+            $total +=$row['transactionsNumber'] ?? 0;
+        }
+        $indexed['total'] = $total;
+
+        $this->assetCache['sellTransactions'][$portfolioId][$criteriaKey] = $indexed;
 
         return $indexed;
     }
