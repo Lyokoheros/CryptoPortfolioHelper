@@ -6,10 +6,18 @@ use App\Entity\Currency;
 use App\Entity\Portfolio;
 use App\Repository\CurrencyRepository;
 use App\Repository\TransactionRepository;
+use DateTime;
 use Psr\Log\LoggerInterface;
 
 class PortfolioService
 {
+    private ?DateTime $lastCacheRefresh = null;
+    private string $updateFrequency = '200 minutes';
+    private array $assetCache = [];
+    //Structure: $assetCache[$category][$portoflioId][$criteriaKey][$symbol]
+    private array $cachedDataCategories = [
+        'stats'
+    ];
     private $avaibleParameterFunctions = [
         'getAssetValueInPortfolio',
         'getAssetCostInPortfolioPerCurrency',
@@ -32,6 +40,17 @@ class PortfolioService
         $usage = memory_get_usage(true) / 1024 / 1024;
         $peak = memory_get_peak_usage(true) / 1024 / 1024;
         $this->logger->info("[$label] Current: {$usage}MB | Peak: {$peak}MB");
+    }
+
+    public function checkAssetCache(): void
+    { 
+        $now = new DateTime();
+        $dateLimit = (clone $now)->modify('-' . $this->updateFrequency);
+
+        if ($this->lastCacheRefresh === null || $this->lastCacheRefresh < $dateLimit) {
+            $this->assetCache = [];
+            $this->lastCacheRefresh = $now;
+        }
     }
 
     public function getAssetValueInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency, array $optionalCriteria = [])
@@ -186,6 +205,12 @@ class PortfolioService
 
     public function getAssetStatInPortfolio(Currency $asset, Portfolio $portfolio, Currency $baseCurrency): array
     {
+        $this->checkAssetCache();
+        if(isset($this->assetCache['stats'][$asset->getSymbol()]))
+        {
+            return $this->assetCache['stats'][$asset->getSymbol()];
+        }
+        
         $totalBought = $this->assetService->getAssetIncome($asset, [$portfolio]);
         $totalCost = $this->getAssetTotalCostInPortfolio($asset, $portfolio, $baseCurrency);
         $soldOutPercentage = $this->getSoldOutPercentageInPortfolio($asset, $portfolio);
@@ -202,8 +227,39 @@ class PortfolioService
             //methematically second element is $soldOutPercentage*($realizedIncome/($soldOutPercentage*$totalBought)
         }
         $valueBalance = ($realizedIncome + $assetValue) / $totalCost;
+        $buyTransactions = $this->transactionRepository->getBuyTransactionCounts($portfolio);
+        $sellTransactions = $this->transactionRepository->getSellTransactionCounts($portfolio);
 
-        return [
+        if(
+            isset($buyTransactions[$asset->getSymbol()])
+             && $buyTransactions['total']['transactions'] > 0
+        ) {
+            $buyTransactionCount = $buyTransactions[$asset->getSymbol()]['transactions'] ?? 0;
+            $buyTransactionPercentage = $buyTransactionCount
+                / $buyTransactions['total']['transactions'];
+        }
+        else
+        {
+            $buyTransactionCount = 0;
+            $buyTransactionPercentage = 0;
+        }
+
+        if(
+            isset($sellTransactions[$asset->getSymbol()])
+             && $sellTransactions['total']['transactions'] > 0
+        ) {
+            $sellTransactionCount = $sellTransactions[$asset->getSymbol()]['transactions'] ?? 0;
+            $sellTransactionPercentage = $sellTransactionCount
+                / $sellTransactions['total']['transactions'];
+        }
+        else
+        {
+            $sellTransactionCount = 0;
+            $sellTransactionPercentage = 0;
+        }
+
+
+        $stats = [
             'assetSymbol' => $asset->getSymbol(),
             'totalBought' => $totalBought,
             'totalCost' => $totalCost,
@@ -211,6 +267,10 @@ class PortfolioService
             'currentPrice' => $currentPrice,
             'realizedAvgPrice' => $realizedAvgPrice,
             'currentQuantity' => $this->assetService->getAssetQuantity($asset, [$portfolio]),
+            'buyTransactions' => $buyTransactionCount,
+            'buyTransactionsPercentage' => $buyTransactionPercentage,
+            'sellTransactions' => $sellTransactionCount,
+            'sellTransactionsPercentage' => $sellTransactionPercentage,
             'soldOutPercentage' => $soldOutPercentage,
             'realizedProfit' => $realizedIncome,
             'realizedProfitBalance' => $realizedIncome - $totalCost,
@@ -218,6 +278,10 @@ class PortfolioService
             'valueBalance' => $valueBalance,
             'currentAssetValue' => $assetValue
         ];
+        $this->assetCache['stats'][$asset->getSymbol()] = $stats;
+        
+        return $stats;
+
     }
 
     public function getAllAssetsStatInPortfolio(Portfolio $portfolio, Currency $baseCurrency): array
@@ -291,7 +355,7 @@ class PortfolioService
     {
         $transactions = $this->transactionRepository->getBuyTransactionCounts($portfolio, $optionalCriteria);
         
-        uasort($transactions, fn($a, $b) => $b['percentage'] <=> $a['percentage']);
+        uasort($transactions, fn($a, $b) => $b['transactions'] <=> $a['transactions']);
         
         return $transactions;
     }
@@ -300,7 +364,7 @@ class PortfolioService
     {
         $transactions = $this->transactionRepository->getSellTransactionCounts($portfolio, $optionalCriteria);
         
-        uasort($transactions, fn($a, $b) => $b['percentage'] <=> $a['percentage']);
+        uasort($transactions, fn($a, $b) => $b['transactions'] <=> $a['transactions']);
         
         return $transactions;
     }

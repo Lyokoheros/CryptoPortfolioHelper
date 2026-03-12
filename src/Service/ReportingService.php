@@ -141,33 +141,35 @@ class ReportingService
                 $portfolio,
                 $baseCurrency
             ),
-            'portfolioValueStructure' => $this->structureService->getAssetValueStructure(
-                [$portfolio],
-                $baseCurrency
-            ),
             'portfolioTotalCost' => $this->portfolioService->getPortfolioTotalCost(
                 $portfolio,
-                $baseCurrency
-            ),
-            'portfolioCostStructure' => $this->structureService->getAssetCostStructure(
-                [$portfolio],
                 $baseCurrency
             ),
             'portfolioTotalRealizedProfit' => $this->portfolioService->getTotalRealizedIncome(
                 $portfolio,
                 $baseCurrency
             ),
+            'portfolioValueStructure' => $this->structureService->getAssetValueStructure(
+                [$portfolio],
+                $baseCurrency
+            ),
+            'portfolioCostStructure' => $this->structureService->getAssetCostStructure(
+                [$portfolio],
+                $baseCurrency
+            ),            
             'portfolioRealizedProfitCStructure' => $this->structureService->getRealizedValueStructure(
                 [$portfolio],
                 $baseCurrency
             ),
             'portfolioSoldOutStructure' => $this->structureService->getSoldOutStructure(
                 [$portfolio]
-            )[$portfolio->getName()],
+            )[$portfolio->getName()], 
             'portfolioTopPerformer' => $this->portfolioService->getTopPerformer(
                 $portfolio,
                 $baseCurrency
             ),
+            'purchases' => $this->portfolioService->getBuyTransactionNumbers($portfolio),
+            'sellings' => $this->portfolioService->getSellTransactionNumbers($portfolio),
             'portfolioBottomPerformer' => $this->portfolioService->getBottomPerformer(
                 $portfolio,
                 $baseCurrency

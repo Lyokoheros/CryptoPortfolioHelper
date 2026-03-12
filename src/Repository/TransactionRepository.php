@@ -17,7 +17,7 @@ use Psr\Log\LoggerInterface;
 class TransactionRepository extends EnhancedEntityRepository
 {
     private ?DateTime $lastCacheRefresh = null;
-    private string $updateFrequency = '20 minutes';
+    private string $updateFrequency = '200 minutes';
     private array $assetCache = [];
     //Structure: $assetCache[$category][$portoflioId][$criteriaKey][$symbol]
     private array $cachedDataCategories = [
@@ -325,7 +325,7 @@ class TransactionRepository extends EnhancedEntityRepository
             $portoflioId = $portfolio->getId();
             $transactions = 0;
             
-            if($type == "BUY" || "BOTH")
+            if($type == "BUY" || $type ==  "BOTH")
             {
                 if(isset($this->assetCache['buyTransactions'][$portoflioId][$criteriaKey][$symbol]))
                 {
@@ -343,7 +343,7 @@ class TransactionRepository extends EnhancedEntityRepository
                 $transactionsTotal += $transactions;
             }
 
-            if($type == "SELL" || "BOTH")
+            if($type == "SELL" || $type == "BOTH")
             {
                 if(isset($this->assetCache['sellTransactions'][$portoflioId][$criteriaKey][$symbol]))
                 {
@@ -536,7 +536,7 @@ class TransactionRepository extends EnhancedEntityRepository
                 'transactions' => $row['transactionsNumber'] ?? 0
             ]; $total +=$row['transactionsNumber'] ?? 0;
         }
-        $indexed['total'] = $total;
+        $indexed['total'] = ['transactions' => $total];
 
         $this->assetCache['buyTransactions'][$portfolioId][$criteriaKey] = $indexed;
 
@@ -551,7 +551,7 @@ class TransactionRepository extends EnhancedEntityRepository
         
         if (isset($this->assetCache['sellTransactions'][$portfolioId][$criteriaKey])) 
         {
-            return $this->assetCache['selltransactions'][$portfolioId][$criteriaKey];
+            return $this->assetCache['sellTransactions'][$portfolioId][$criteriaKey];
         }
 
         $qb = $this->createQueryBuilder('t')
@@ -592,7 +592,7 @@ class TransactionRepository extends EnhancedEntityRepository
             ];
             $total +=$row['transactionsNumber'] ?? 0;
         }
-        $indexed['total'] = $total;
+        $indexed['total'] = ['transactions' => $total];
 
         $this->assetCache['sellTransactions'][$portfolioId][$criteriaKey] = $indexed;
 
