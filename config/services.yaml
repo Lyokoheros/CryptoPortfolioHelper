@@ -38,7 +38,7 @@ services:
     App\Service\CryptoApi\CryptoApiProviderInterface:
         class: App\Service\CryptoApi\CoinGeckoApi
     
-    App\Service\CurrencyService:
+    App\Service\CurrencyRatesService:
         arguments:
             $httpClient: '@http_client'
 
