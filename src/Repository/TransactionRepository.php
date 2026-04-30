@@ -633,6 +633,53 @@ class TransactionRepository extends EnhancedEntityRepository
         return $indexed;
     }
 
+    public function getUsersAllTransactionsForAsset(
+        User $user,
+        Currency $asset,
+        array $optionalCriteria = []
+    ): array
+    {
+        $qb = $this->createQueryBuilder('t')
+        ->join('t.transactionBatch', 'tb')
+        ->join('tb.portfolio', 'p')
+        ->where('p.user = :user')
+        ->setParameter('user', $user)
+        ->andWhere('(t.boughtCurrency = :asset OR t.soldCurrency = :asset)')
+        ->setParameter('asset', $asset);
+
+        foreach ($optionalCriteria as $field => $value) 
+        {
+            if ($value === null) 
+            {
+                continue;
+            }
+
+            $qb->setParameter($field, $value);
+            if($field == 'starDate')
+            {
+                $qb->andWhere("t.date >= :$field");
+                continue;
+            }
+            if($field == 'endDate')
+            {
+                $qb->andWhere("t.date <= :$field");
+                continue;
+            }
+            // if someone filters on an association, compare its id
+            if (isset($this->associationFields[$field]))
+            {
+                $qb->andWhere("IDENTITY(t.$field) = :$field");
+            }
+            else
+            {
+                $qb->andWhere("t.$field = :$field");
+            }
+            $qb->setParameter($field, $value);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function getUserAssetIncomeInNativeCurrency(
         User $user,
         Currency $asset,
@@ -677,17 +724,19 @@ class TransactionRepository extends EnhancedEntityRepository
                 continue;
             }
 
-            $qb->setParameter($field, $value);
             if($field == 'starDate')
             {
                 $qb->andWhere("t.date >= :$field");
+                $qb->setParameter('t.date', $value);
                 continue;
             }
             if($field == 'endDate')
             {
                 $qb->andWhere("t.date <= :$field");
+                $qb->setParameter('t.date', $value);
                 continue;
             }
+            $qb->setParameter($field, $value);
             // if someone filters on an association, compare its id
             if (isset($this->associationFields[$field]))
             {
