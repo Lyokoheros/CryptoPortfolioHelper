@@ -108,12 +108,14 @@ class CurrencyRepository extends EnhancedEntityRepository
     }
     public function findByNiche(string $niche): array
     {
+        $safeNiche = str_replace("'", "''", $niche);
+    
         return $this->createQueryBuilder('c')
-            ->where(':niche MEMBER OF c.niches')
-            ->setParameter('niche', $niche)
+            ->where('c.niches LIKE :pattern')
+            ->setParameter('pattern', '%' . $safeNiche . '%') 
             ->getQuery()
             ->getResult();
-    }
+        }
 
     public function findFiatCurrencies(): array
     {
