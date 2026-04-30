@@ -29,7 +29,7 @@ class UserRepository extends EnhancedEntityRepository
         $users = [];
         foreach($this->findAll() as $user)
         {
-            $users[$user->getId()] = $user->getUserName();
+            $users[$user->getId()] = $user;
         }
         return $users;
     }
