@@ -1,7 +1,10 @@
 <?php
 namespace App\Service;
 
+use App\Entity\Currency;
+use App\Entity\DailyExchangeRate;
 use App\Repository\DailyExchangeRateRepository;
+use App\Repository\CurrencyRepository;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use DateTime;
 use JsonException;
@@ -13,8 +16,41 @@ class CurrencyRatesService
 
     public function __construct(
         private DailyExchangeRateRepository $repository,
+        private CurrencyRepository $currencyRepo,
         private HttpClientInterface $httpClient
     ){}
+
+    public function checkCurrencyRate(Currency $soldCurrency, Currency $boughtCurrency, DateTime $date): float
+    {
+        $exchangeRateData = $this->getHistoricalRate($date, $soldCurrency->getSymbol(), $boughtCurrency->getSymbol());
+                       
+        $this->repository->addExchangeRateIfNotExists([
+            'baseCurrency' => $soldCurrency,
+            'exchangedCurrency' => $boughtCurrency,
+            'exchangeRate' => $exchangeRateData['rate'],
+            'date' => $exchangeRateData['date']
+        ]);
+        $finalDateString = $date->format('Y-m-d');
+        $date = new DateTime($exchangeRateData['date']);
+        $date->modify('+1 day');  
+        $dateString = $date->format('Y-m-d');
+
+        while($dateString !== $finalDateString)
+        {
+            $this->repository->addExchangeRateIfNotExists([
+                'baseCurrency' => $soldCurrency,
+                'exchangedCurrency' => $boughtCurrency,
+                'exchangeRate' => $exchangeRateData['rate'],
+                'date' => $date
+            ]);
+
+            $date->modify('+1 day');  
+            $dateString = $date->format('Y-m-d');
+        }
+
+        return $exchangeRateData['rate'];
+    }
+
 
     public function getHistoricalRate(
         DateTime $date,
