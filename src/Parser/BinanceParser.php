@@ -25,7 +25,8 @@ class BinanceParser extends AbstractExchangeParser implements ExchangeParserInte
         $portfolioOrdinalNumbers = [];
         foreach($transactionsData as $transactionData)
         {
-            
+            $date = $this->getDate($transactionData) ?? null;
+
             if(isset($transactionData['portfolio']))
             {
                 $portfolio = $this->portfolioRepo->findOrCreatePortfolio(
@@ -44,12 +45,12 @@ class BinanceParser extends AbstractExchangeParser implements ExchangeParserInte
             
             $batch = $this->transactionBatchRepo->findOrCreateBatch(
                 $transactionData['batch']
-                    ?: ($defualtBatchName . $portfolioOrdinalNumbers[$portfolio->getName()]),
+                    ?? ($defualtBatchName . $portfolioOrdinalNumbers[$portfolio->getName()]),
                 [
                     'type' => $portfolio->getDefualtBatchType(),
                     'finished' => false,
                     'portfolio' => $portfolio,
-                    'date' => $transactionData['Date(UTC)'] ?? null,
+                    'date' => $date->format('Y-m-d'),
                     'ordinalNumber' => $portfolioOrdinalNumbers[$portfolio->getName()]
                 ]
             );
@@ -66,7 +67,7 @@ class BinanceParser extends AbstractExchangeParser implements ExchangeParserInte
                     [
                         'name' => $executed['currency'],
                         'currentPrice' => $transactionData['Price'],
-                        'lastPriceUpdate' => $transactionData['Date(UTC)']
+                        'lastPriceUpdate' => $date->format('Y-m-d')  
                     ]
                 );
                 $buyValue = $executed['value'];
@@ -92,7 +93,7 @@ class BinanceParser extends AbstractExchangeParser implements ExchangeParserInte
                     [
                         'name' => $executed['currency'],
                         'currentPrice' => $transactionData['Price'],
-                        'lastPriceUpdate' => $transactionData['Date(UTC)']
+                        'lastPriceUpdate' => $date->format('Y-m-d')
                     ]
                 );
                 $sellValue = $executed['value'];
@@ -117,7 +118,7 @@ class BinanceParser extends AbstractExchangeParser implements ExchangeParserInte
                 'Fee' => (float)$fee['value'],
                 'Exchange' => $exchange,
                 'MarketPrice' => $transactionData['Price'],
-                'Date' => $this->getDate($transactionData)
+                'Date' => $date
             ]);
             $portfolio->addBoughtAsset($boughtCurrency);
             $portfolio->addSoldAsset($soldCurrency);
