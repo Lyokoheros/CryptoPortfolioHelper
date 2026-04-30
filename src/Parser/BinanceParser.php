@@ -7,7 +7,7 @@ use App\Entity\Transaction;
 use App\Entity\User;
 use DateTime;
 
-class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInterface
+class BinanceParser extends AbstractExchangeParser implements ExchangeParserInterface
 {
     protected function getExchange(): Exchange
     {
