@@ -10,9 +10,9 @@ class ExchangeFixtures extends Fixture
 {
     const EXCHANGES_DATA = [
         [
-            'name' => 'Binnance',
+            'name' => 'Binance',
             'mainUrl' => 'https://www.binance.com',
-            'parserClass' => 'App\\Parser\\BinnanceParser'
+            'parserClass' => 'App\\Parser\\BinanceParser'
         ],
         [
             'name' => 'Coinbase',

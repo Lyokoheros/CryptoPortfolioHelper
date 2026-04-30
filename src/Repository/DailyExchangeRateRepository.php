@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Currency;
 use App\Entity\DailyExchangeRate;
 use Doctrine\Persistence\ManagerRegistry;
+use Stringable;
 
 /**
  * @extends EnhancedEntityRepository<DailyExchangeRate>
@@ -22,61 +23,52 @@ class DailyExchangeRateRepository extends EnhancedEntityRepository
     {
         $dailyExchangeRate = new DailyExchangeRate();
 
+        if(isset($exchangeRateData['baseCurrencySymbol']))
+        {
+            $baseCurrency = $this->entityManager->getRepository(Currency::class)->findOneBy(['symbol' => $exchangeRateData['baseCurrencySymbol']]);
+        }
         if(isset($exchangeRateData['baseCurrencyId']))
         {
             $baseCurrency = $this->currencyRepository->find($exchangeRateData['baseCurrencyId']);
-            if(!$baseCurrency)
-            {
-               throw new \RuntimeException('Base currency not found');
-            }
-            $dailyExchangeRate->setBaseCurrency($baseCurrency);
         } 
-        else
+        $exchangeRateData['baseCurrency'] ??= $baseCurrency ?? null;
+            
+        if(!isset($exchangeRateData['baseCurrency']))
         {
-            if(isset($exchangeRateData['baseCurrencySymbol']))
-            {
-                $baseCurrency = $this->entityManager->getRepository(Currency::class)->findOneBy(['symbol' => $exchangeRateData['baseCurrencySymbol']]);
-                if(!$baseCurrency)
-                {
-                    throw new \RuntimeException('Base currency not found by symbol');
-                }
-                $dailyExchangeRate->setBaseCurrency($baseCurrency);
-            }
-            else
-            {
-                throw new \RuntimeException('Base currency id or symbol is required');
-            }
+            throw new \RuntimeException('Base currency (can be id or symbol) is required');
         }
 
+
+        if(isset($exchangeRateData['exchangedCurrencySymbol']))
+        {
+            $exchangedCurrency = $this->entityManager->getRepository(Currency::class)->findOneBy(['symbol' => $exchangeRateData['exchangedCurrencySymbol']]);       
+        }
         if(isset($exchangeRateData['exchangedCurrencyId']))
         {
             $exchangedCurrency = $this->currencyRepository->find($exchangeRateData['exchangedCurrencyId']);
-            if(!$exchangedCurrency)
-            {
-               throw new \RuntimeException('Exchanged currency not found');
-            }
-            $dailyExchangeRate->setExchangedCurrency($exchangedCurrency);
-        } 
-        else
-        {
-            if(isset($exchangeRateData['exchangedCurrencySymbol']))
-            {
-                $exchangedCurrency = $this->entityManager->getRepository(Currency::class)->findOneBy(['symbol' => $exchangeRateData['exchangedCurrencySymbol']]);
-                if(!$exchangedCurrency)
-                {
-                    throw new \RuntimeException('Exchanged currency not found by symbol');
-                }
-                $dailyExchangeRate->setExchangedCurrency($exchangedCurrency);
-            }
-            else
-            {
-                throw new \RuntimeException('Exchanged currency id or symbol is required');
-            }
         }
+        $exchangeRateData['exchangedCurrency'] ??= $exchangedCurrency ?? null;
+
+        if(!isset($exchangeRateData['exchangedCurrency']))
+        {
+            throw new \RuntimeException('Exchanged currency (can be id or symbol) is required');
+        }
+
+        $dailyExchangeRate->setBaseCurrency($exchangeRateData['baseCurrency']);
+        $dailyExchangeRate->setExchangedCurrency($exchangeRateData['exchangedCurrency']);
+
 
         if(isset($exchangeRateData['date']))
         {
-            $dailyExchangeRate->setDate(new \DateTime($exchangeRateData['date']));
+            if($exchangeRateData['date'] instanceof Stringable || is_string($exchangeRateData['date']))
+            {
+                $exchangeRateData['date'] = (new \DateTime($exchangeRateData['date']))->format('Y-m-d');
+            }
+            if(!$exchangeRateData['date'] instanceof \DateTimeInterface)
+            {
+                throw new \RuntimeException('Wrong date format');
+            }
+            $dailyExchangeRate->setDate($exchangeRateData['date']);
         }
         else
         {
@@ -131,4 +123,26 @@ class DailyExchangeRateRepository extends EnhancedEntityRepository
         
         $this->editEntity($exchangeRate, $exchangeRateData);        
     }
+
+    public function addExchangeRateIfNotExists($exchangeRateData): void
+     {
+        $criteria = [];
+        foreach(['baseCurrency', 'exchangedCurrency', 'date'] as $field)
+        {
+            if(isset($exchangeRateData[$field]))
+            {   
+                $criteria[$field] = $exchangeRateData[$field];
+            }
+            else
+            {
+                throw new \RuntimeException("$field is required to add exchange rate");
+            }
+        }
+        $existingRate = $this->findOneBy($criteria);
+
+        if (!$existingRate) 
+        {
+            $this->addExchangeRate($exchangeRateData);
+        }
+     }
 }

@@ -88,10 +88,10 @@ class CurrencyFixtures extends Fixture
             'maxSupply' => 1000000000
         ],
         [
-            'name' => 'Binnace Coin',
+            'name' => 'Binance Coin',
             'symbol' => 'BNB',
-            'nativeBlockchain' => 'Binnace Smart Chain(BSC)',
-            'availableNetworks' => ['Binnace Smart Chain(BSC)', 'Polygon Network', 'Avalanche Network'],
+            'nativeBlockchain' => 'Binance Smart Chain(BSC)',
+            'availableNetworks' => ['Binance Smart Chain(BSC)', 'Polygon Network', 'Avalanche Network'],
             'niches' => ['layer 1', 'exchange token', 'smart contracts'],
             'allTimeHigh' => 717,48,
             'allTimeLow' => 0.03982,
@@ -102,8 +102,8 @@ class CurrencyFixtures extends Fixture
         [
             'name' => 'binance USD',
             'symbol' => 'BUSD',
-            'nativeBlockchain' => 'Binnance Smart Chain(BSC)',
-            'availableNetworks' => ['Binnance Smart Chain(BSC)'],
+            'nativeBlockchain' => 'Binance Smart Chain(BSC)',
+            'availableNetworks' => ['Binance Smart Chain(BSC)'],
             'niches' => ['stablecoins'],
             'allTimeHigh' => 1,
             'allTimeLow' => 1,

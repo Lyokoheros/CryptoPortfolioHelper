@@ -7,23 +7,23 @@ use App\Entity\Transaction;
 use App\Entity\User;
 use DateTime;
 
-class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInterface
+class BinanceParser extends AbstractExchangeParser implements ExchangeParserInterface
 {
     protected function getExchange(): Exchange
     {
-        return $this->exchangeRepo->findoneBy(['name' => 'Binnance']);
+        return $this->exchangeRepo->findoneBy(['name' => 'Binance']);
     }
 
     public function parseTransactionsCSVData($csvData, User $user): void
     {
         $exchange = $this->getExchange();
-        $transactionDatas = $this->parseCSV($csvData);
+        $transactionsData = $this->parseCSV($csvData);
         $defaultPortfolio = $this->userRepo->findUsersDefaultPortfolio($user);
 
         $defualtBatchName = "Purchase";
         $portfolio = null;
         $portfolioOrdinalNumbers = [];
-        foreach($transactionDatas as $transactionData)
+        foreach($transactionsData as $transactionData)
         {
             
             if(isset($transactionData['portfolio']))
@@ -102,6 +102,8 @@ class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInt
                 $fee['currency'], 
                 ['name' => $fee['currency']]
             );
+
+
            
 
             $transaction = new Transaction();
@@ -114,8 +116,8 @@ class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInt
                 'FeeCurrency' => $feeCurrency,
                 'Fee' => (float)$fee['value'],
                 'Exchange' => $exchange,
-                'MarketPrice' => (float)$transactionData['Price'],
-                'Date' => new DateTime($transactionData['Date(UTC)'])
+                'MarketPrice' => $transactionData['Price'],
+                'Date' => $this->getDate($transactionData)
             ]);
             $portfolio->addBoughtAsset($boughtCurrency);
             $portfolio->addSoldAsset($soldCurrency);
@@ -132,6 +134,27 @@ class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInt
 
             $this->currencyRepo->saveEntity($portfolio);
         }
+    }
+
+    private function getDate(array $transactionData): ?DateTime
+    {
+        if(isset($transactionData['Date(UTC)']))
+        {
+            return new DateTime($transactionData['Date(UTC)']);
+        }
+        if(isset($transactionData['Date']))
+        {
+            return new DateTime($transactionData['Date']);
+        }
+        if(isset($transactionData['Time']))
+        {
+            return new DateTime($transactionData['Time']);
+        }
+        if(isset($transactionData['timestamp']))
+        {
+            return new DateTime('@' . $transactionData['timestamp']);
+        }
+        return null;
     }
 
 }
