@@ -397,19 +397,7 @@ class TransactionRepository extends EnhancedEntityRepository
             ->setParameter('portfolio', $portfolio)
             ->groupBy('bc.id');
 
-        foreach ($optionalCriteria as $field => $value) 
-        {
-            // if someone filters on an association, compare its id
-            if (isset($this->associationFields[$field]))
-            {
-                $qb->andWhere("IDENTITY(t.$field) = :$field");
-            }
-            else
-            {
-                $qb->andWhere("t.$field = :$field");
-            }
-            $qb->setParameter($field, $value);
-        }
+        $qb = $this->addOptionalQueryCriteria($qb, $optionalCriteria);
 
         $results = $qb->getQuery()->getResult();
 
@@ -458,36 +446,7 @@ class TransactionRepository extends EnhancedEntityRepository
             ->setParameter('portfolio', $portfolio)
             ->groupBy('sc.id');
 
-        foreach ($optionalCriteria as $field => $value) 
-        {
-            if ($value === null) 
-            {
-                continue;
-            }
-
-            $qb->setParameter($field, $value);
-            if($field == 'starDate')
-            {
-                $qb->andWhere("t.date >= :$field");
-                continue;
-            }
-            if($field == 'endDate')
-            {
-                $qb->andWhere("t.date <= :$field");
-                continue;
-            }
-            // if someone filters on an association, compare its id
-            if (isset($this->associationFields[$field]))
-            {
-                $qb->andWhere("IDENTITY(t.$field) = :$field");
-            }
-            else
-            {
-                $qb->andWhere("t.$field = :$field");
-            }
-            $qb->setParameter($field, $value);
-        }
-
+        $qb = $this->addOptionalQueryCriteria($qb, $optionalCriteria);
 
         $results = $qb->getQuery()->getResult();
 
@@ -517,7 +476,6 @@ class TransactionRepository extends EnhancedEntityRepository
         }
 
         $qb = $this->createQueryBuilder('t')
-            // join the currency so we can group by a real field
             ->leftJoin('t.boughtCurrency', 'sc')
             ->leftJoin('t.transactionBatch', 'tb')
             ->select('
@@ -530,19 +488,7 @@ class TransactionRepository extends EnhancedEntityRepository
             ->setParameter('portfolio', $portfolio)
             ->groupBy('sc.symbol');
 
-        foreach ($optionalCriteria as $field => $value) 
-        {
-            // if someone filters on an association, compare its id
-            if (isset($this->associationFields[$field]))
-            {
-                $qb->andWhere("IDENTITY(t.$field) = :$field");
-            }
-            else
-            {
-                $qb->andWhere("t.$field = :$field");
-            }
-            $qb->setParameter($field, $value);
-        }
+        $qb = $this->addOptionalQueryCriteria($qb, $optionalCriteria);
 
         $results = $qb->getQuery()->getResult();
 
@@ -585,35 +531,7 @@ class TransactionRepository extends EnhancedEntityRepository
             ->setParameter('portfolio', $portfolio)
             ->groupBy('sc.symbol');
 
-        foreach ($optionalCriteria as $field => $value) 
-        {
-            if ($value === null) 
-            {
-                continue;
-            }
-
-            $qb->setParameter($field, $value);
-            if($field == 'starDate')
-            {
-                $qb->andWhere("t.date >= :$field");
-                continue;
-            }
-            if($field == 'endDate')
-            {
-                $qb->andWhere("t.date <= :$field");
-                continue;
-            }
-            // if someone filters on an association, compare its id
-            if (isset($this->associationFields[$field]))
-            {
-                $qb->andWhere("IDENTITY(t.$field) = :$field");
-            }
-            else
-            {
-                $qb->andWhere("t.$field = :$field");
-            }
-            $qb->setParameter($field, $value);
-        }
+        $qb = $this->addOptionalQueryCriteria($qb, $optionalCriteria);
 
         $results = $qb->getQuery()->getResult();
 
@@ -647,35 +565,7 @@ class TransactionRepository extends EnhancedEntityRepository
         ->andWhere('(t.boughtCurrency = :asset OR t.soldCurrency = :asset)')
         ->setParameter('asset', $asset);
 
-        foreach ($optionalCriteria as $field => $value) 
-        {
-            if ($value === null) 
-            {
-                continue;
-            }
-
-            $qb->setParameter($field, $value);
-            if($field == 'starDate')
-            {
-                $qb->andWhere("t.date >= :$field");
-                continue;
-            }
-            if($field == 'endDate')
-            {
-                $qb->andWhere("t.date <= :$field");
-                continue;
-            }
-            // if someone filters on an association, compare its id
-            if (isset($this->associationFields[$field]))
-            {
-                $qb->andWhere("IDENTITY(t.$field) = :$field");
-            }
-            else
-            {
-                $qb->andWhere("t.$field = :$field");
-            }
-            $qb->setParameter($field, $value);
-        }
+        $qb = $this->addOptionalQueryCriteria($qb, $optionalCriteria);
 
         return $qb->getQuery()->getResult();
     }
@@ -716,39 +606,8 @@ class TransactionRepository extends EnhancedEntityRepository
         ')
         ->orderBy('t.date', 'DESC');
 
-
-        foreach ($optionalCriteria as $field => $value) 
-        {
-            if ($value === null) 
-            {
-                continue;
-            }
-
-            if($field == 'starDate')
-            {
-                $qb->andWhere("t.date >= :$field");
-                $qb->setParameter('t.date', $value);
-                continue;
-            }
-            if($field == 'endDate')
-            {
-                $qb->andWhere("t.date <= :$field");
-                $qb->setParameter('t.date', $value);
-                continue;
-            }
-            $qb->setParameter($field, $value);
-            // if someone filters on an association, compare its id
-            if (isset($this->associationFields[$field]))
-            {
-                $qb->andWhere("IDENTITY(t.$field) = :$field");
-            }
-            else
-            {
-                $qb->andWhere("t.$field = :$field");
-            }
-            $qb->setParameter($field, $value);
-        }
-
+        $qb = $this->addOptionalQueryCriteria($qb, $optionalCriteria);
+        
         $results = $qb->getQuery()->getResult();
 
         return $results;
@@ -793,41 +652,11 @@ class TransactionRepository extends EnhancedEntityRepository
         ')
         ->orderBy('t.date', 'DESC');
 
-
-        foreach ($optionalCriteria as $field => $value) 
-        {
-            if ($value === null) 
-            {
-                continue;
-            }
-
-            $qb->setParameter($field, $value);
-            if($field == 'starDate')
-            {
-                $qb->andWhere("t.date >= :$field");
-                continue;
-            }
-            if($field == 'endDate')
-            {
-                $qb->andWhere("t.date <= :$field");
-                continue;
-            }
-            // if someone filters on an association, compare its id
-            if (isset($this->associationFields[$field]))
-            {
-                $qb->andWhere("IDENTITY(t.$field) = :$field");
-            }
-            else
-            {
-                $qb->andWhere("t.$field = :$field");
-            }
-            $qb->setParameter($field, $value);
-        }
+        $qb = $this->addOptionalQueryCriteria($qb, $optionalCriteria);
 
         $results = $qb->getQuery()->getResult();
 
         return $results;
 
     }
-
 }

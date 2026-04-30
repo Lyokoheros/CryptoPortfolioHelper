@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use ReflectionClass;
 
@@ -69,5 +70,40 @@ abstract class EnhancedEntityRepository extends ServiceEntityRepository
         }
 
         return $entityNamespace;
+    }
+
+    protected function addOptionalQueryCriteria(QueryBuilder $queryBuilder , array $criteria): QueryBuilder
+    {
+        foreach ($criteria as $field => $value) 
+        {
+            if ($value === null) 
+            {
+                continue;
+            }
+            if($field == 'starDate')
+            {
+                $queryBuilder->andWhere("t.date >= :$field");
+                $queryBuilder->setParameter('t.date', $value);
+                continue;
+            }
+            if($field == 'endDate')
+            {
+                $queryBuilder->andWhere("t.date <= :$field");
+                $queryBuilder->setParameter('t.date', $value);
+                continue;
+            }
+            $queryBuilder->setParameter($field, $value);
+            // if someone filters on an association, compare its id
+            if (isset($this->associationFields[$field]))
+            {
+                $queryBuilder->andWhere("IDENTITY(t.$field) = :$field");
+            }
+            else
+            {
+                $queryBuilder->andWhere("t.$field = :$field");
+            }
+            $queryBuilder->setParameter($field, $value);
+        }
+        return $queryBuilder;
     }
 }
