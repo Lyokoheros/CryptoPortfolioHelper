@@ -7,6 +7,7 @@ use App\Entity\Exchange;
 use App\Entity\Portfolio;
 use App\Entity\Transaction;
 use App\Entity\TransactionBatch;
+use App\Entity\User;
 use DateTime;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
@@ -459,6 +460,22 @@ class TransactionRepository extends EnhancedEntityRepository
 
         foreach ($optionalCriteria as $field => $value) 
         {
+            if ($value === null) 
+            {
+                continue;
+            }
+
+            $qb->setParameter($field, $value);
+            if($field == 'starDate')
+            {
+                $qb->andWhere("t.date >= :$field");
+                continue;
+            }
+            if($field == 'endDate')
+            {
+                $qb->andWhere("t.date <= :$field");
+                continue;
+            }
             // if someone filters on an association, compare its id
             if (isset($this->associationFields[$field]))
             {
@@ -470,6 +487,7 @@ class TransactionRepository extends EnhancedEntityRepository
             }
             $qb->setParameter($field, $value);
         }
+
 
         $results = $qb->getQuery()->getResult();
 
@@ -569,6 +587,22 @@ class TransactionRepository extends EnhancedEntityRepository
 
         foreach ($optionalCriteria as $field => $value) 
         {
+            if ($value === null) 
+            {
+                continue;
+            }
+
+            $qb->setParameter($field, $value);
+            if($field == 'starDate')
+            {
+                $qb->andWhere("t.date >= :$field");
+                continue;
+            }
+            if($field == 'endDate')
+            {
+                $qb->andWhere("t.date <= :$field");
+                continue;
+            }
             // if someone filters on an association, compare its id
             if (isset($this->associationFields[$field]))
             {
@@ -599,5 +633,152 @@ class TransactionRepository extends EnhancedEntityRepository
         return $indexed;
     }
 
+    public function getUserAssetIncomeInNativeCurrency(
+        User $user,
+        Currency $asset,
+        array $optionalCriteria = []
+    ): array
+    {
+
+        $qb = $this->createQueryBuilder('t')
+        ->join('t.transactionBatch', 'tb')
+        ->join('tb.portfolio', 'p')
+        ->where('p.user = :user')
+        ->setParameter('user', $user)
+        ->andWhere('t.boughtCurrency = :asset')
+        ->setParameter('asset', $asset)
+
+        // Join Exchange Rate for SOLD side
+        ->leftJoin('App\Entity\DailyExchangeRate', 'rate', 'WITH', '
+            rate.date = t.date 
+            AND rate.baseCurrency = p.nativeCurrency
+            AND rate.exchangedCurrency = t.boughtCurrency 
+        ')
+        
+        // Join Currency for symbol display (optional)
+        ->leftJoin('t.boughtCurrency', 'sc')
+        
+        ->select('
+            t.id,
+            t.date,
+            sc.symbol AS boughtSymbol,
+            t.buyValue,
+            p.nativeCurrency,
+            COALESCE(rate.rate, 0) AS rate,
+            t.buyValue * COALESCE(rate.rate, 0) AS valueInNative
+        ')
+        ->orderBy('t.date', 'DESC');
+
+
+        foreach ($optionalCriteria as $field => $value) 
+        {
+            if ($value === null) 
+            {
+                continue;
+            }
+
+            $qb->setParameter($field, $value);
+            if($field == 'starDate')
+            {
+                $qb->andWhere("t.date >= :$field");
+                continue;
+            }
+            if($field == 'endDate')
+            {
+                $qb->andWhere("t.date <= :$field");
+                continue;
+            }
+            // if someone filters on an association, compare its id
+            if (isset($this->associationFields[$field]))
+            {
+                $qb->andWhere("IDENTITY(t.$field) = :$field");
+            }
+            else
+            {
+                $qb->andWhere("t.$field = :$field");
+            }
+            $qb->setParameter($field, $value);
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        return $results;
+
+    }
+
+
+    public function getUserAssetExpensesInNativeCurrency(
+        User $user,
+        Currency $asset,
+        array $optionalCriteria = []
+    ): array
+    {
+        $nativeCurrency = $user->getNativeCurrency();
+
+        $qb = $this->createQueryBuilder('t')
+        ->join('t.transactionBatch', 'tb')
+        ->join('tb.portfolio', 'p')
+        ->where('p.user = :user')
+        ->setParameter('user', $user)
+        ->andWhere('t.soldCurrency = :asset')
+        ->setParameter('asset', $asset)
+
+        // Join Exchange Rate for SOLD side
+        ->leftJoin('App\Entity\DailyExchangeRate', 'rate', 'WITH', '
+            rate.date = t.date 
+            AND rate.baseCurrency = p.nativeCurrency
+            AND rate.exchangedCurrency = t.soldCurrency 
+        ')
+        
+        // Join Currency for symbol display (optional)
+        ->leftJoin('t.soldCurrency', 'sc')
+        
+        ->select('
+            t.id,
+            t.date,
+            sc.symbol AS soldSymbol,
+            t.sellValue,
+            p.nativeCurrency,
+            COALESCE(rate.rate, 0) AS rate,
+            t.sellValue * COALESCE(rate.rate, 0) AS valueInNative
+        ')
+        ->orderBy('t.date', 'DESC');
+
+
+        foreach ($optionalCriteria as $field => $value) 
+        {
+            if ($value === null) 
+            {
+                continue;
+            }
+
+            $qb->setParameter($field, $value);
+            if($field == 'starDate')
+            {
+                $qb->andWhere("t.date >= :$field");
+                continue;
+            }
+            if($field == 'endDate')
+            {
+                $qb->andWhere("t.date <= :$field");
+                continue;
+            }
+            // if someone filters on an association, compare its id
+            if (isset($this->associationFields[$field]))
+            {
+                $qb->andWhere("IDENTITY(t.$field) = :$field");
+            }
+            else
+            {
+                $qb->andWhere("t.$field = :$field");
+            }
+            $qb->setParameter($field, $value);
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        return $results;
+
+    }
 
 }
