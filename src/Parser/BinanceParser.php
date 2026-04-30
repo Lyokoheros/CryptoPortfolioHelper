@@ -11,19 +11,19 @@ class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInt
 {
     protected function getExchange(): Exchange
     {
-        return $this->exchangeRepo->findoneBy(['name' => 'Binnance']);
+        return $this->exchangeRepo->findoneBy(['name' => 'Binance']);
     }
 
     public function parseTransactionsCSVData($csvData, User $user): void
     {
         $exchange = $this->getExchange();
-        $transactionData = $this->parseCSV($csvData);
+        $transactionsData = $this->parseCSV($csvData);
         $defaultPortfolio = $this->userRepo->findUsersDefaultPortfolio($user);
 
         $defualtBatchName = "Purchase";
         $portfolio = null;
         $portfolioOrdinalNumbers = [];
-        foreach($transactionData as $transactionData)
+        foreach($transactionsData as $transactionData)
         {
             
             if(isset($transactionData['portfolio']))
@@ -102,6 +102,8 @@ class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInt
                 $fee['currency'], 
                 ['name' => $fee['currency']]
             );
+
+
            
 
             $transaction = new Transaction();
@@ -115,7 +117,7 @@ class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInt
                 'Fee' => $fee['value'],
                 'Exchange' => $exchange,
                 'MarketPrice' => $transactionData['Price'],
-                'Date' => new DateTime($transactionData['Date(UTC)'])
+                'Date' => $this->getDate($transactionData)
             ]);
 
             $transactionCountInBatch = count($this->transactionRepo
@@ -126,6 +128,27 @@ class BinnanceParser extends AbstractExchangeParser implements ExchangeParserInt
                 $this->transactionBatchRepo->editTransactionBatch($batch, ['isFinished' => true]);
             }
         }
+    }
+
+    private function getDate(array $transactionData): ?DateTime
+    {
+        if(isset($transactionData['Date(UTC)']))
+        {
+            return new DateTime($transactionData['Date(UTC)']);
+        }
+        if(isset($transactionData['Date']))
+        {
+            return new DateTime($transactionData['Date']);
+        }
+        if(isset($transactionData['Time']))
+        {
+            return new DateTime($transactionData['Time']);
+        }
+        if(isset($transactionData['timestamp']))
+        {
+            return new DateTime('@' . $transactionData['timestamp']);
+        }
+        return null;
     }
 
 }
