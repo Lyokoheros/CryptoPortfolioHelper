@@ -2,10 +2,12 @@
 
 namespace App\Repository;
 
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use ReflectionClass;
+use Stringable;
 
 /**
  * @extends ServiceEntityRepository<object>
@@ -36,6 +38,10 @@ abstract class EnhancedEntityRepository extends ServiceEntityRepository
         foreach ($data as $fieldName => $fieldValue) {
             if ($fieldName === 'id') {
                 continue; // Skip the ID field
+            }
+            if (str_contains(strtolower($fieldName), 'date')) 
+            {
+                $fieldValue = $this->handleDate($fieldValue);
             }
             $setter = 'set' . ucfirst($fieldName);
             if (method_exists($entity, $setter)) {
@@ -72,6 +78,22 @@ abstract class EnhancedEntityRepository extends ServiceEntityRepository
         return $entityNamespace;
     }
 
+    public function handleDate(mixed $date): DateTime
+    {
+        if(is_string($date) || $date instanceof Stringable)
+        {
+            $date = new DateTime($date);
+        }
+        else if(!($date instanceof \DateTimeInterface))
+        {
+            throw new \RuntimeException(
+                'Wrong date format: ' . $date  
+                . ' of type ' . gettype($date)
+            );
+        }
+        return $date;           
+    }
+
     protected function addOptionalQueryCriteria(QueryBuilder $queryBuilder , array $criteria): QueryBuilder
     {
         foreach ($criteria as $field => $value) 
@@ -80,19 +102,18 @@ abstract class EnhancedEntityRepository extends ServiceEntityRepository
             {
                 continue;
             }
-            if($field == 'starDate')
+            if($field == 'startDate')
             {
                 $queryBuilder->andWhere("t.date >= :$field");
-                $queryBuilder->setParameter('t.date', $value);
+                $queryBuilder->setParameter($field, $value);
                 continue;
             }
             if($field == 'endDate')
             {
                 $queryBuilder->andWhere("t.date <= :$field");
-                $queryBuilder->setParameter('t.date', $value);
+                $queryBuilder->setParameter($field, $value);
                 continue;
             }
-            $queryBuilder->setParameter($field, $value);
             // if someone filters on an association, compare its id
             if (isset($this->associationFields[$field]))
             {
