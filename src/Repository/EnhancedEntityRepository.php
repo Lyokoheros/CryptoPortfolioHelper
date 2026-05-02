@@ -127,4 +127,14 @@ abstract class EnhancedEntityRepository extends ServiceEntityRepository
         }
         return $queryBuilder;
     }
+
+    function removeAll(): void
+    {
+        $objects = $this->findAll();
+        foreach($objects as $object)
+        {
+            $this->entityManager->remove($object);
+        }
+        $this->entityManager->flush();
+     }
 }

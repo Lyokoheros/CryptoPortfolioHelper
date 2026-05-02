@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\DailyExchangeRate;
+use App\Repository\DailyExchangeRateRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,14 +15,11 @@ use Symfony\Component\Routing\Attribute\Route;
 final class DailyExchangeRateController extends AbstractController
 {
     
-    private $repository; 
-
+    
     public function __construct(
-        //private SerializerInterface $serializer,
+        private DailyExchangeRateRepository $repository,
         private EntityManagerInterface $entityManager
-    ) {
-        $this->repository = $this->entityManager->getRepository(DailyExchangeRate::class);
-    }
+    ) {}
 
     #[Route('', name: 'list')]
     public function index(): JsonResponse
@@ -71,11 +69,20 @@ final class DailyExchangeRateController extends AbstractController
     }    
 
     #[Route('/delete/{id<\d+>}', name: 'delete', methods: ['DELETE'])]
-    public function DeleteExchange(int $id): JsonResponse
+    public function DeleteExchangeRate(int $id): JsonResponse
     {
         $this->repository->removebyId($id);
         return $this->json([
             'message' => 'Exchange rate deleted'
+        ]);
+    }
+
+    #[Route('/reset', name: 'delete_all', methods: ['DELETE'])]
+    public function deleteAllExchangeRates(): JsonResponse
+    {
+        $this->repository->removeAll();
+        return $this->json([
+            'message' => 'All exchange rates deleted'
         ]);
     }
 }
