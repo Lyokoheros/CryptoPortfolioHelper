@@ -570,93 +570,73 @@ class TransactionRepository extends EnhancedEntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    public function getUserAssetIncomeInNativeCurrency(
+    public function getUserAssetValueInNativeCurrency(
         User $user,
         Currency $asset,
-        array $optionalCriteria = []
+        array $optionalCriteria = [],
+        bool $aggregate = false,
+        string $side = "income"
     ): array
     {
+        if(!in_array(strtolower($side), ['income', 'expenses']))
+        {
+            throw new \RuntimeException('Wrong side. Must be either income or expenses');
+        }
+        if(strtolower($side) == "income")
+        { 
+            $currency = 'boughtCurrency';
+            $value = 'buyValue';
+            $symbol = 'boughtSymbol';
+        }
+        else
+        {
+            $currency = 'soldCurrency';
+            $value = 'sellValue';
+            $symbol = 'soldSymbol';
+        }
 
         $qb = $this->createQueryBuilder('t')
-        ->join('t.transactionBatch', 'tb')
-        ->join('tb.portfolio', 'p')
-        ->where('p.user = :user')
-        ->setParameter('user', $user)
-        ->andWhere('t.boughtCurrency = :asset')
-        ->setParameter('asset', $asset)
+            ->join('t.transactionBatch', 'tb')
+            ->join('tb.portfolio', 'p')
+            ->join('p.user', 'u') 
+            ->where('u = :user')
+            ->setParameter('user', $user)
+            ->andWhere('t.' . $currency . ' = :asset')
+            ->setParameter('asset', $asset)
+            ->leftJoin('App\Entity\DailyExchangeRate', 'rate', 'WITH', '
+                rate.date = t.date 
+                AND rate.baseCurrency = u.nativeCurrency
+                AND rate.exchangedCurrency = t.' . $currency 
+            )
+            ->leftJoin('t.' . $currency, 'sc');
 
-        // Join Exchange Rate for SOLD side
-        ->leftJoin('App\Entity\DailyExchangeRate', 'rate', 'WITH', '
-            rate.date = t.date 
-            AND rate.baseCurrency = p.nativeCurrency
-            AND rate.exchangedCurrency = t.boughtCurrency 
-        ')
+        if($aggregate)
+        {
+            $qb->select('
+                sc.symbol AS '. $symbol .',
+                SUM(t.'.$value.' * COALESCE(rate.exchangeRate, 0)) AS totalValueInNative
+            ')
+            ->groupBy('sc.symbol');
+        }
+        else
+        {
+            $qb->select('
+                t.id,
+                t.date,
+                sc.symbol AS '. $symbol .',
+                t.'.$value.',
+                u.nativeCurrency,
+                COALESCE(rate.exchangeRate, 0) AS rate,
+                t.'.$value.' * COALESCE(rate.exchangeRate, 0) AS valueInNative
+            ')
+            ->orderBy('t.date', 'DESC');
+        }
         
-        // Join Currency for symbol display (optional)
-        ->leftJoin('t.boughtCurrency', 'sc')
-        
-        ->select('
-            t.id,
-            t.date,
-            sc.symbol AS boughtSymbol,
-            t.buyValue,
-            p.nativeCurrency,
-            COALESCE(rate.rate, 0) AS rate,
-            t.buyValue * COALESCE(rate.rate, 0) AS valueInNative
-        ')
-        ->orderBy('t.date', 'DESC');
 
         $qb = $this->addOptionalQueryCriteria($qb, $optionalCriteria);
         
         $results = $qb->getQuery()->getResult();
 
         return $results;
-
-    }
-
-
-    public function getUserAssetExpensesInNativeCurrency(
-        User $user,
-        Currency $asset,
-        array $optionalCriteria = []
-    ): array
-    {
-        $nativeCurrency = $user->getNativeCurrency();
-
-        $qb = $this->createQueryBuilder('t')
-        ->join('t.transactionBatch', 'tb')
-        ->join('tb.portfolio', 'p')
-        ->where('p.user = :user')
-        ->setParameter('user', $user)
-        ->andWhere('t.soldCurrency = :asset')
-        ->setParameter('asset', $asset)
-
-        // Join Exchange Rate for SOLD side
-        ->leftJoin('App\Entity\DailyExchangeRate', 'rate', 'WITH', '
-            rate.date = t.date 
-            AND rate.baseCurrency = p.nativeCurrency
-            AND rate.exchangedCurrency = t.soldCurrency 
-        ')
-        
-        // Join Currency for symbol display (optional)
-        ->leftJoin('t.soldCurrency', 'sc')
-        
-        ->select('
-            t.id,
-            t.date,
-            sc.symbol AS soldSymbol,
-            t.sellValue,
-            p.nativeCurrency,
-            COALESCE(rate.rate, 0) AS rate,
-            t.sellValue * COALESCE(rate.rate, 0) AS valueInNative
-        ')
-        ->orderBy('t.date', 'DESC');
-
-        $qb = $this->addOptionalQueryCriteria($qb, $optionalCriteria);
-
-        $results = $qb->getQuery()->getResult();
-
-        return $results;
-
     }
 }
