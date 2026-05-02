@@ -22,6 +22,15 @@ class CurrencyRatesService
 
     public function checkCurrencyRate(Currency $soldCurrency, Currency $boughtCurrency, DateTime $date): float
     {
+        $existing = $this->repository->findOneBy([
+            'baseCurrency' => $soldCurrency,
+            'exchangedCurrency' => $boughtCurrency,
+            'date' => $date
+        ]);
+
+        if ($existing) {
+            return $existing->getExchangeRate(); // Skip API call entirely
+        }
         $exchangeRateData = $this->getHistoricalRate($date, $soldCurrency->getSymbol(), $boughtCurrency->getSymbol());
                        
         $this->repository->addExchangeRateIfNotExists([
@@ -30,6 +39,10 @@ class CurrencyRatesService
             'exchangeRate' => $exchangeRateData['rate'],
             'date' => $exchangeRateData['date']
         ]);
+        if ($exchangeRateData['date'] === $date->format('Y-m-d')) {
+            return $exchangeRateData['rate'];
+        }
+
         $finalDateString = $date->format('Y-m-d');
         $date = new DateTime($exchangeRateData['date']);
         $date->modify('+1 day');  
@@ -81,7 +94,7 @@ class CurrencyRatesService
                 return $data;
             }
             else if ($retries < $this->maxRetries) {
-                $this->getHistoricalRate($date->modify('-1 day'), $soldCurrency, $boughtCurrency, $retries + 1);
+                return $this->getHistoricalRate($date->modify('-1 day'), $soldCurrency, $boughtCurrency, $retries + 1);
             }
 
             throw new NotFoundHttpException("Rate not found for {$soldCurrency} to {$boughtCurrency} on {$dateString}");

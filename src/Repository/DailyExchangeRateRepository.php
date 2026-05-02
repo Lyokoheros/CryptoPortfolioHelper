@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Currency;
 use App\Entity\DailyExchangeRate;
+use DateTime;
 use Doctrine\Persistence\ManagerRegistry;
 use Stringable;
 
@@ -60,24 +61,23 @@ class DailyExchangeRateRepository extends EnhancedEntityRepository
 
         if(isset($exchangeRateData['date']))
         {
-            if($exchangeRateData['date'] instanceof Stringable || is_string($exchangeRateData['date']))
-            {
-                $exchangeRateData['date'] = (new \DateTime($exchangeRateData['date']))->format('Y-m-d');
-            }
-            if(!$exchangeRateData['date'] instanceof \DateTimeInterface)
-            {
-                throw new \RuntimeException('Wrong date format');
-            }
-            $dailyExchangeRate->setDate($exchangeRateData['date']);
+            $dailyExchangeRate->setDate($this->handleDate($exchangeRateData['date']));
         }
         else
         {
             throw new \RuntimeException('Date is required');
         }
 
+        if(isset($exchangeRateData['exchangeRate']))
+        {
+            $dailyExchangeRate->setExchangeRate($exchangeRateData['exchangeRate']);
+        }
+        else
+        {
+            throw new \RuntimeException('Exchange rate value is required');
+        }
 
-
-        $this->entityManager->persist($dailyExchangeRate);
+        $this->saveEntity($dailyExchangeRate);
 
         $this->editExchangeRate(
             $dailyExchangeRate->getId(), 
@@ -86,7 +86,7 @@ class DailyExchangeRateRepository extends EnhancedEntityRepository
         );
     }
     
-    public function editExchangeRate($exchangeRateId, $exchangeRateData, ?DailyExchangeRate $exchangeRate = null): void
+    public function editExchangeRate(int $exchangeRateId, array $exchangeRateData, ?DailyExchangeRate $exchangeRate = null): void
     {
         if($exchangeRate === null)
         {
@@ -104,7 +104,7 @@ class DailyExchangeRateRepository extends EnhancedEntityRepository
         } 
         else if(isset($exchangeRateData['baseCurrencySymbol']))
         {
-            $exchangeRateData['baseCurrency'] = $this->entityManager->getRepository(Currency::class)->findOneBy(['symbol' => $exchangeRateData['baseCurrencySymbol']]);
+            $exchangeRateData['baseCurrency'] = $this->currencyRepository->findOneBy(['symbol' => $exchangeRateData['baseCurrencySymbol']]);
         }        
 
         if(isset($exchangeRateData['exchangedCurrencyId']))
@@ -113,12 +113,7 @@ class DailyExchangeRateRepository extends EnhancedEntityRepository
         } 
         else if(isset($exchangeRateData['exchangedCurrencySymbol']))
         {
-            $exchangeRateData['exchangedCurrency'] = $this->entityManager->getRepository(Currency::class)->findOneBy(['symbol' => $exchangeRateData['exchangedCurrencySymbol']]);
-        }
-
-        if(isset($exchangeRateData['date']))
-        {
-            $exchangeRateData['date'] = new \DateTime($exchangeRateData['date']);
+            $exchangeRateData['exchangedCurrency'] = $this->currencyRepository->findOneBy(['symbol' => $exchangeRateData['exchangedCurrencySymbol']]);
         }
         
         $this->editEntity($exchangeRate, $exchangeRateData);        
@@ -132,6 +127,10 @@ class DailyExchangeRateRepository extends EnhancedEntityRepository
             if(isset($exchangeRateData[$field]))
             {   
                 $criteria[$field] = $exchangeRateData[$field];
+                if($field == 'date')
+                {
+                    $criteria[$field] = $this->handleDate($criteria[$field]);
+                }
             }
             else
             {
@@ -140,7 +139,7 @@ class DailyExchangeRateRepository extends EnhancedEntityRepository
         }
         $existingRate = $this->findOneBy($criteria);
 
-        if (!$existingRate) 
+        if ($existingRate === null) 
         {
             $this->addExchangeRate($exchangeRateData);
         }

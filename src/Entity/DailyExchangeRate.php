@@ -21,7 +21,7 @@ class DailyExchangeRate
     #[ORM\Column]
     #[Groups(['exchangeRate'])]
     private ?float $exchangeRate = null;
-    //quantity of baseCurrency needed to buy 1 unit of exchangedCurrency
+    //quantity of baseCurrency needed to buy 1 unit of exchangedCurrency (or got for seling 1 unit of exchangedCurrency)
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
