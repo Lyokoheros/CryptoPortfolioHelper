@@ -4,6 +4,11 @@ namespace App\Service;
 
 use App\Entity\Currency;
 use App\Entity\Portfolio;
+use App\Entity\Transaction;
+use App\Entity\User;
+use App\Repository\TransactionRepository;
+use App\Repository\CurrencyRepository;
+use App\Service\CurrencyRatesService;
 use Psr\Log\LoggerInterface;
 
 class ReportingService
@@ -12,6 +17,9 @@ class ReportingService
         private CurrencyService $currencyService,
         private PortfolioService $portfolioService,
         private StructureService $structureService,
+        private TransactionRepository $transactionRepository,
+        private CurrencyRepository $currencyRepository,
+        private CurrencyRatesService $currencyRatesService,
         private LoggerInterface $logger        
     ) {}
 
@@ -175,6 +183,49 @@ class ReportingService
                 $baseCurrency
             )
         ];
+    }
+
+    public function getPitReportData(User $user, int $year): array
+    {
+        $nativeCurrency = $user->getNativeCurrency();
+        $startDate = (new \DateTime())->setDate($year, 1, 1)->setTime(0, 0, 0);
+        $endDate = (new \DateTime())->setDate($year, 12, 31)->setTime(23, 59, 59);
+
+        $fiats = $this->currencyRepository->findFiatCurrencies();
+        echo "Fetched fiat currencies: " . count($fiats) . "\n";
+        foreach($fiats as $fiat) {    
+            $transactions = $this->transactionRepository->getUsersAllTransactionsForAsset(
+                $user, $fiat, [ 'startDate' => $startDate, 'endDate' => $endDate ]
+            );
+            foreach($transactions as $transaction) {
+                $this->currencyRatesService->checkCurrencyRate(
+                    $fiat,
+                    $nativeCurrency,
+                    $transaction->getDate()
+                );
+            }
+        }
+        echo "Ensured exchange rates for all fiat transactions.\n";
+        $income = 0;
+        $cost = 0;
+        foreach($fiats as $fiat) {    
+            $transactions = $this->transactionRepository->getUserAssetValueInNativeCurrency(
+                $user, $fiat, ['startDate' => $startDate, 'endDate' => $endDate ], true, 'income'
+            );
+            foreach($transactions as $transaction) {
+                $income += $transaction['totalValueInNative'];
+            }
+            echo "Calculated income for fiat: " . $fiat->getSymbol() . "= " . $income . "\n";
+            $transactions = $this->transactionRepository->getUserAssetValueInNativeCurrency(
+                $user, $fiat, [ 'startDate' => $startDate, 'endDate' => $endDate ], true, 'expenses'
+            );
+            foreach($transactions as $transaction) {
+                $cost += $transaction['totalValueInNative'];
+            }
+            echo "Calculated expenses for fiat: " . $fiat->getSymbol() . "= " . $cost . "\n";
+        }
+
+        return ['totalIncome' => $income, 'totalCost' => $cost];
     }
 
 }
