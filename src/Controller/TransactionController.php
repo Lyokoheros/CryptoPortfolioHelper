@@ -4,6 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Transaction;
 use App\Entity\TransactionBatch;
+use App\Entity\User;
+use App\Repository\TransactionRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,15 +17,13 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/transaction', name: 'app_transaction')]
 final class TransactionController extends AbstractController
 {
-    private $repository; 
-    private $batchRepository;
 
     public function __construct(
         //private SerializerInterface $serializer,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private TransactionRepository $repository,
+        private UserRepository $userRepository
     ) {
-        $this->repository = $this->entityManager->getRepository(Transaction::class);
-        $this->batchRepository = $this->entityManager->getRepository(TransactionBatch::class);
     }
 
 
@@ -78,5 +79,16 @@ final class TransactionController extends AbstractController
         return $this->json([
             'message' => 'Transaction deleted'
         ]);
+    }
+
+    #[Route('/user/{userId}', name: 'get_user_transactions', methods: ['GET'])]
+    public function getAllUserTransactions(int $userId): JsonResponse
+    {
+        $user = $this->userRepository->find($userId);
+        $optionalCriteria = [
+            'startDate' => (new \DateTime())->setDate(2025, 1, 1)->setTime(0, 0, 0),
+            'endDate' => (new \DateTime())->setDate(2025, 12, 31)->setTime(23, 59, 59)];
+        $transactions = $this->repository->findAllByUser($user, $optionalCriteria);
+        return $this->json($transactions, context: ['groups' => 'transactionDetails']);
     }
 }

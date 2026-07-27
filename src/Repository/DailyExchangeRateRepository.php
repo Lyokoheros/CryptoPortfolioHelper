@@ -53,7 +53,7 @@ class DailyExchangeRateRepository extends EnhancedEntityRepository
         if(!isset($exchangeRateData['exchangedCurrency']))
         {
             throw new \RuntimeException('Exchanged currency (can be id or symbol) is required');
-        }
+        } 
 
         $dailyExchangeRate->setBaseCurrency($exchangeRateData['baseCurrency']);
         $dailyExchangeRate->setExchangedCurrency($exchangeRateData['exchangedCurrency']);
@@ -119,7 +119,7 @@ class DailyExchangeRateRepository extends EnhancedEntityRepository
         $this->editEntity($exchangeRate, $exchangeRateData);        
     }
 
-    public function addExchangeRateIfNotExists($exchangeRateData): void
+    public function addExchangeRateIfNotExists(array $exchangeRateData): void
      {
         $criteria = [];
         foreach(['baseCurrency', 'exchangedCurrency', 'date'] as $field)
@@ -142,6 +142,10 @@ class DailyExchangeRateRepository extends EnhancedEntityRepository
         if ($existingRate === null) 
         {
             $this->addExchangeRate($exchangeRateData);
+        }
+        else
+        {
+            //echo "Exchange rate for {$criteria['baseCurrency']->getSymbol()} to {$criteria['exchangedCurrency']->getSymbol()} on {$criteria['date']->format('Y-m-d')} already exists.\n";
         }
      }
 }

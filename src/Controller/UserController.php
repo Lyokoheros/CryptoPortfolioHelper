@@ -10,6 +10,7 @@ use App\Entity\Exchange;
 use App\Entity\Portfolio;
 use App\Entity\TransactionBatch;
 use App\Repository\UserRepository;
+use App\Service\ReportingService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,7 +25,8 @@ class UserController extends AbstractController
 
     public function __construct(
         //private SerializerInterface $serializer,
-        private UserRepository $repository
+        private UserRepository $repository,
+        private ReportingService $reportingService
     ) {}
 
     #[Route('/', name: 'list', methods: ['GET'])]
@@ -131,5 +133,19 @@ class UserController extends AbstractController
             'message' => 'User deleted'
         ]);
     }    
+
+
+    #[Route('/pit/{year<\d+>}', name: 'pit_data', methods: ['GET'])]
+    public function getPitData(int $year): JsonResponse
+    {
+
+        $users = $this->repository->getAllUsers();
+        $usersData = [];
+        foreach ($users as $user) {
+           // echo $user->getName();
+            $usersData[$user->getName()] = $this->reportingService->getPitReportData($user, $year);
+        }
+        return $this->json($usersData);
+    }
 }
  

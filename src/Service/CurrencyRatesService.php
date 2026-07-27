@@ -16,7 +16,6 @@ class CurrencyRatesService
 
     public function __construct(
         private DailyExchangeRateRepository $repository,
-        private CurrencyRepository $currencyRepo,
         private HttpClientInterface $httpClient
     ){}
 
@@ -29,9 +28,13 @@ class CurrencyRatesService
         ]);
 
         if ($existing) {
-            return $existing->getExchangeRate(); // Skip API call entirely
+            return $existing->getExchangeRate();
         }
-        $exchangeRateData = $this->getHistoricalRate($date, $soldCurrency->getSymbol(), $boughtCurrency->getSymbol());
+        $exchangeRateData = $this->getHistoricalRate(
+            $date, 
+            $soldCurrency->getSymbol(), 
+            $boughtCurrency->getSymbol()
+        );
                        
         $this->repository->addExchangeRateIfNotExists([
             'baseCurrency' => $soldCurrency,
@@ -45,20 +48,21 @@ class CurrencyRatesService
 
         $finalDateString = $date->format('Y-m-d');
         $date = new DateTime($exchangeRateData['date']);
-        $date->modify('+1 day');  
         $dateString = $date->format('Y-m-d');
+        
 
         while($dateString !== $finalDateString)
         {
+            $date->modify('+1 day');  
+            $dateString = $date->format('Y-m-d');
+
+            echo "trying to add rate for {$dateString}\n";
             $this->repository->addExchangeRateIfNotExists([
                 'baseCurrency' => $soldCurrency,
                 'exchangedCurrency' => $boughtCurrency,
                 'exchangeRate' => $exchangeRateData['rate'],
                 'date' => $date
             ]);
-
-            $date->modify('+1 day');  
-            $dateString = $date->format('Y-m-d');
         }
 
         return $exchangeRateData['rate'];

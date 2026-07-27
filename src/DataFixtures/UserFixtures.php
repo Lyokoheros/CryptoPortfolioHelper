@@ -19,6 +19,15 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             'country' => 'Poland',
             'nativeCurrency' => 'PLN',
             'displayCurrency' => 'USD'
+        ],
+        [
+            'userName' => 'Mama',
+            'name' => 'Kamila',
+            'surname' => 'Tomaszyk',
+            'email' => 'ktomaszyk71@gmail.com',
+            'country' => 'Poland',
+            'nativeCurrency' => 'PLN',
+            'displayCurrency' => 'USD'
         ]
     ];
 

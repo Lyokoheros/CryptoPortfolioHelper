@@ -603,12 +603,12 @@ class TransactionRepository extends EnhancedEntityRepository
             ->setParameter('user', $user)
             ->andWhere('t.' . $currency . ' = :asset')
             ->setParameter('asset', $asset)
+            ->leftJoin('t.' . $currency, 'sc')
             ->leftJoin('App\Entity\DailyExchangeRate', 'rate', 'WITH', '
-                rate.date = t.date 
+                DATE(rate.date) = DATE(t.date)
                 AND rate.baseCurrency = u.nativeCurrency
                 AND rate.exchangedCurrency = t.' . $currency 
-            )
-            ->leftJoin('t.' . $currency, 'sc');
+            );
 
         if($aggregate)
         {
@@ -634,9 +634,25 @@ class TransactionRepository extends EnhancedEntityRepository
         
 
         $qb = $this->addOptionalQueryCriteria($qb, $optionalCriteria);
-        
         $results = $qb->getQuery()->getResult();
 
         return $results;
     }
+
+
+    public function findAllByUser(User $user, array $optionalCriteria = []): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->join('t.transactionBatch', 'tb')
+            ->join('tb.portfolio', 'p')
+            ->leftJoin('t.soldCurrency', 'sc')
+            ->leftJoin('t.boughtCurrency', 'bc')
+            ->where('p.user = :user')
+            ->setParameter('user', $user)
+            ->select('t, sc.symbol as soldSymbol, bc.symbol as boughtSymbol')
+            ->orderBy('t.date', 'DESC');    
+        $qb = $this->addOptionalQueryCriteria($qb, $optionalCriteria); 
+
+        return $qb->getQuery()->getResult();
+    } 
 }
